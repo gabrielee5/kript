@@ -1,0 +1,437 @@
+/**
+ * Key management functions for LocalPGP
+ */
+
+import * as openpgp from 'openpgp';
+import {
+  KeyAlgorithm,
+  KeyGenerationOptions,
+  KeyInfo,
+  KeyPair,
+  KeyUsage,
+  SubkeyInfo,
+  UserId,
+  ExportOptions,
+  ImportResult,
+  PGPError,
+  ErrorCode,
+} from './types.js';
+import { formatUserId, getShortKeyId } from './utils.js';
+
+/**
+ * Map our algorithm names to OpenPGP.js config
+ */
+function getAlgorithmConfig(algorithm: KeyAlgorithm): {
+  type: 'rsa' | 'ecc';
+  rsaBits?: number;
+  curve?: openpgp.EllipticCurveName;
+} {
+  switch (algorithm) {
+    case 'rsa2048':
+      return { type: 'rsa', rsaBits: 2048 };
+    case 'rsa4096':
+      return { type: 'rsa', rsaBits: 4096 };
+    case 'ecc':
+    case 'curve25519':
+      return { type: 'ecc', curve: 'curve25519' };
+    default:
+      return { type: 'ecc', curve: 'curve25519' };
+  }
+}
+
+/**
+ * Extract key usage flags from an OpenPGP key
+ */
+function extractKeyUsage(key: openpgp.Key): KeyUsage {
+  const keyPacket = key.keyPacket;
+  // OpenPGP.js doesn't expose flags directly, so we check capabilities
+  return {
+    certify: true, // Primary keys can always certify
+    sign: true,
+    encrypt: key.getEncryptionKey() !== undefined,
+    authenticate: false,
+  };
+}
+
+/**
+ * Extract key info from an OpenPGP key
+ */
+export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
+  const keyPacket = key.keyPacket;
+  const fingerprint = key.getFingerprint().toUpperCase();
+  const keyId = getShortKeyId(fingerprint);
+
+  // Get user IDs
+  const userIds: UserId[] = key.users.map((user) => {
+    const userId = user.userID;
+    return {
+      name: userId?.name ?? '',
+      email: userId?.email ?? '',
+      comment: userId?.comment || undefined,
+    };
+  });
+
+  // Get algorithm info
+  const algoInfo = keyPacket.algorithm;
+  let algorithm = 'Unknown';
+  let bitLength: number | undefined;
+  let curve: string | undefined;
+
+  if ('getBitSize' in keyPacket && typeof keyPacket.getBitSize === 'function') {
+    bitLength = keyPacket.getBitSize();
+    algorithm = `RSA-${bitLength}`;
+  } else if ('oid' in keyPacket) {
+    curve = 'curve25519';
+    algorithm = 'ECC (Curve25519)';
+  }
+
+  // Get expiration
+  const expirationTime = await key.getExpirationTime();
+  const expiration =
+    expirationTime && expirationTime !== Infinity ? new Date(expirationTime) : undefined;
+
+  // Check revocation
+  const revoked = await key.isRevoked();
+
+  // Get subkeys
+  const subkeys: SubkeyInfo[] = await Promise.all(
+    key.subkeys.map(async (subkey) => {
+      const subFingerprint = subkey.getFingerprint().toUpperCase();
+      const subKeyPacket = subkey.keyPacket;
+
+      let subAlgorithm = 'Unknown';
+      let subBitLength: number | undefined;
+      let subCurve: string | undefined;
+
+      if ('getBitSize' in subKeyPacket && typeof subKeyPacket.getBitSize === 'function') {
+        subBitLength = subKeyPacket.getBitSize();
+        subAlgorithm = `RSA-${subBitLength}`;
+      } else if ('oid' in subKeyPacket) {
+        subCurve = 'curve25519';
+        subAlgorithm = 'ECC (Curve25519)';
+      }
+
+      const subExpiration = await subkey.getExpirationTime();
+
+      return {
+        keyId: getShortKeyId(subFingerprint),
+        fingerprint: subFingerprint,
+        algorithm: subAlgorithm,
+        bitLength: subBitLength,
+        curve: subCurve,
+        creationTime: subKeyPacket.created,
+        expirationTime: subExpiration && subExpiration !== Infinity ? new Date(subExpiration) : undefined,
+        usage: {
+          certify: false,
+          sign: false,
+          encrypt: true,
+          authenticate: false,
+        },
+        revoked: await subkey.isRevoked(),
+      };
+    })
+  );
+
+  return {
+    keyId,
+    fingerprint,
+    algorithm,
+    bitLength,
+    curve,
+    creationTime: keyPacket.created,
+    expirationTime: expiration,
+    userIds,
+    usage: extractKeyUsage(key),
+    revoked,
+    isPrivate: key.isPrivate(),
+    subkeys,
+  };
+}
+
+/**
+ * Generate a new PGP key pair
+ */
+export async function generateKeyPair(options: KeyGenerationOptions): Promise<KeyPair> {
+  const { algorithm, userIds, passphrase, expirationTime } = options;
+  const algoConfig = getAlgorithmConfig(algorithm);
+
+  // Format user IDs for OpenPGP.js
+  const formattedUserIds = userIds.map((uid) => formatUserId(uid));
+
+  try {
+    const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
+      type: algoConfig.type,
+      rsaBits: algoConfig.rsaBits,
+      curve: algoConfig.curve,
+      userIDs: userIds.map((uid) => ({
+        name: uid.name,
+        email: uid.email,
+        comment: uid.comment,
+      })),
+      passphrase: passphrase || undefined,
+      keyExpirationTime: expirationTime,
+      format: 'armored',
+    });
+
+    // Parse the generated key to extract info
+    const parsedKey = await openpgp.readKey({ armoredKey: privateKey });
+    const keyInfo = await extractKeyInfo(parsedKey);
+
+    return {
+      publicKey,
+      privateKey,
+      revocationCertificate,
+      keyInfo,
+    };
+  } catch (error) {
+    throw new PGPError(
+      ErrorCode.ENCRYPTION_FAILED,
+      `Failed to generate key pair: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+/**
+ * Read and parse an armored key
+ */
+export async function readKey(armoredKey: string): Promise<openpgp.Key> {
+  try {
+    // Try reading as public key first
+    const key = await openpgp.readKey({ armoredKey });
+    return key;
+  } catch {
+    // Try as private key
+    try {
+      const privateKey = await openpgp.readPrivateKey({ armoredKey });
+      return privateKey;
+    } catch (error) {
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        `Failed to parse key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+}
+
+/**
+ * Read multiple keys from armored text
+ */
+export async function readKeys(armoredKeys: string): Promise<openpgp.Key[]> {
+  try {
+    const keys = await openpgp.readKeys({ armoredKeys });
+    return keys;
+  } catch {
+    // Try reading as single key
+    try {
+      const key = await readKey(armoredKeys);
+      return [key];
+    } catch (error) {
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        `Failed to parse keys: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+}
+
+/**
+ * Import keys from armored text
+ */
+export async function importKeys(armoredKeys: string): Promise<ImportResult> {
+  const result: ImportResult = {
+    keys: [],
+    errors: [],
+  };
+
+  try {
+    const keys = await readKeys(armoredKeys);
+
+    for (const key of keys) {
+      try {
+        const keyInfo = await extractKeyInfo(key);
+        result.keys.push(keyInfo);
+      } catch (error) {
+        result.errors.push(
+          `Failed to extract info from key: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+  } catch (error) {
+    result.errors.push(
+      `Failed to parse keys: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+
+  return result;
+}
+
+/**
+ * Export a key in armored format
+ */
+export async function exportKey(
+  key: openpgp.Key,
+  options: ExportOptions = {}
+): Promise<string> {
+  const { armor = true, includePrivate = false, passphrase } = options;
+
+  try {
+    if (includePrivate && key.isPrivate()) {
+      if (passphrase) {
+        // Decrypt with passphrase first if needed, then re-encrypt
+        let decryptedKey = key;
+        if (!key.isDecrypted()) {
+          decryptedKey = await openpgp.decryptKey({
+            privateKey: key as openpgp.PrivateKey,
+            passphrase,
+          });
+        }
+        const encrypted = await openpgp.encryptKey({
+          privateKey: decryptedKey as openpgp.PrivateKey,
+          passphrase,
+        });
+        return encrypted.armor();
+      }
+      return key.armor();
+    }
+
+    // Export public key only
+    return key.toPublic().armor();
+  } catch (error) {
+    throw new PGPError(
+      ErrorCode.INVALID_KEY,
+      `Failed to export key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+/**
+ * Decrypt a private key with passphrase
+ */
+export async function decryptPrivateKey(
+  armoredKey: string,
+  passphrase: string
+): Promise<openpgp.PrivateKey> {
+  try {
+    const key = await openpgp.readPrivateKey({ armoredKey });
+    const decrypted = await openpgp.decryptKey({
+      privateKey: key,
+      passphrase,
+    });
+    return decrypted;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('passphrase')) {
+      throw new PGPError(ErrorCode.INVALID_PASSPHRASE, 'Incorrect passphrase');
+    }
+    throw new PGPError(
+      ErrorCode.INVALID_KEY,
+      `Failed to decrypt key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+/**
+ * Change the passphrase of a private key
+ */
+export async function changePassphrase(
+  armoredKey: string,
+  oldPassphrase: string,
+  newPassphrase: string
+): Promise<string> {
+  try {
+    const decrypted = await decryptPrivateKey(armoredKey, oldPassphrase);
+    const encrypted = await openpgp.encryptKey({
+      privateKey: decrypted,
+      passphrase: newPassphrase,
+    });
+    return encrypted.armor();
+  } catch (error) {
+    if (error instanceof PGPError) {
+      throw error;
+    }
+    throw new PGPError(
+      ErrorCode.INVALID_KEY,
+      `Failed to change passphrase: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+/**
+ * Generate a revocation certificate for a key
+ */
+export async function generateRevocationCertificate(
+  armoredPrivateKey: string,
+  passphrase?: string,
+  reason?: string
+): Promise<string> {
+  try {
+    let privateKey = await openpgp.readPrivateKey({ armoredKey: armoredPrivateKey });
+
+    if (!privateKey.isDecrypted() && passphrase) {
+      privateKey = await openpgp.decryptKey({ privateKey, passphrase });
+    }
+
+    const { publicKey: revokedKey } = await openpgp.revokeKey({
+      key: privateKey,
+      reasonForRevocation: {
+        flag: openpgp.enums.reasonForRevocation.noReason,
+        string: reason || 'Key revoked',
+      },
+    });
+
+    return revokedKey.armor();
+  } catch (error) {
+    throw new PGPError(
+      ErrorCode.INVALID_KEY,
+      `Failed to generate revocation certificate: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
+/**
+ * Check if a key is valid (not expired, not revoked)
+ */
+export async function validateKey(key: openpgp.Key): Promise<{
+  valid: boolean;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+
+  // Check revocation
+  if (await key.isRevoked()) {
+    errors.push('Key has been revoked');
+  }
+
+  // Check expiration
+  const expiration = await key.getExpirationTime();
+  if (expiration && expiration !== Infinity && new Date(expiration) < new Date()) {
+    errors.push('Key has expired');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Get the primary user ID from a key
+ */
+export function getPrimaryUserId(key: openpgp.Key): UserId | null {
+  const primaryUser = key.users[0];
+  if (!primaryUser?.userID) {
+    return null;
+  }
+
+  return {
+    name: primaryUser.userID.name ?? '',
+    email: primaryUser.userID.email ?? '',
+    comment: primaryUser.userID.comment || undefined,
+  };
+}

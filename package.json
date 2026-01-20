@@ -1,0 +1,60 @@
+{
+  "name": "localpgp",
+  "version": "1.0.0",
+  "description": "A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "core",
+    "cli",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "cli": "node cli/dist/index.js",
+    "web": "npm run preview --workspace=web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "rm -rf core/dist cli/dist web/dist node_modules/.cache"
+  },
+  "keywords": [
+    "pgp",
+    "gpg",
+    "encryption",
+    "cryptography",
+    "privacy",
+    "security",
+    "openpgp",
+    "cli",
+    "local"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/localpgp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/localpgp/issues"
+  },
+  "homepage": "https://github.com/yourusername/localpgp#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  }
+}
