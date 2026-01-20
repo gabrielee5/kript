@@ -4,6 +4,8 @@
 
 A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces.
 
+**[Try Kript.xyz →](https://kript.xyz)**
+
 ![CI](https://github.com/gabrielee5/kript/workflows/CI/badge.svg)
 ![License](https://img.shields.io/github/license/gabrielee5/kript)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
@@ -66,7 +68,7 @@ kript verify <file>         # Verify a signature
 
 ## Web Interface
 
-Start the development server:
+Use the hosted version at **[kript.vercel.app](https://kript.vercel.app)** or run locally:
 
 ```bash
 npm run dev
