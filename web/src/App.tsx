@@ -131,22 +131,35 @@ function App() {
       {/* Footer */}
       <footer className="border-t border-border mt-auto">
         <div className="max-w-[80rem] mx-auto px-lg py-lg">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-md text-xs text-text-secondary">
-            <div>Kript v1.0.0 - All operations run locally in your browser</div>
-            <div className="flex items-center gap-lg">
+          <div className="flex flex-col gap-sm text-xs text-text-secondary">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-md">
+              <div>Kript v1.0.0 - All operations run locally in your browser</div>
+              <div className="flex items-center gap-lg">
+                <a
+                  href="https://github.com/gabrielee5/kript"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-text-primary transition-all duration-150"
+                >
+                  GitHub
+                </a>
+                <a
+                  href="/docs"
+                  className="hover:text-text-primary transition-all duration-150"
+                >
+                  Docs
+                </a>
+              </div>
+            </div>
+            <div className="text-center">
+              Created by Gabriele Fabietti -{' '}
               <a
-                href="https://github.com/gabrielee5/kript"
+                href="https://fabietti.xyz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-text-primary transition-all duration-150"
               >
-                GitHub
-              </a>
-              <a
-                href="/docs"
-                className="hover:text-text-primary transition-all duration-150"
-              >
-                Docs
+                fabietti.xyz
               </a>
             </div>
           </div>
