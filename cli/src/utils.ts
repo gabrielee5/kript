@@ -4,7 +4,7 @@
 
 import chalk from 'chalk';
 import ora, { Ora } from 'ora';
-import { KeyInfo, UserId, formatFingerprint, formatDate, daysUntilExpiration } from '@localpgp/core';
+import { KeyInfo, UserId, formatFingerprint, formatDate, daysUntilExpiration } from '@kript/core';
 
 /**
  * Create a spinner for long operations

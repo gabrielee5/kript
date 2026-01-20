@@ -1,13 +1,13 @@
-# LocalPGP Examples
+# Kript Examples
 
-This directory contains example code demonstrating how to use LocalPGP.
+This directory contains example code demonstrating how to use Kript.
 
 ## Running Examples
 
 First, build the project:
 
 ```bash
-cd /path/to/localpgp
+cd /path/to/kript
 npm install
 npm run build
 ```
@@ -50,7 +50,7 @@ Demonstrates:
 ### Generate a Key Pair
 
 ```typescript
-import { generateKeyPair } from '@localpgp/core';
+import { generateKeyPair } from '@kript/core';
 
 const keys = await generateKeyPair({
   algorithm: 'curve25519',
@@ -66,7 +66,7 @@ const keys = await generateKeyPair({
 ### Encrypt for a Recipient
 
 ```typescript
-import { encrypt } from '@localpgp/core';
+import { encrypt } from '@kript/core';
 
 const result = await encrypt({
   message: 'Secret message',
@@ -78,7 +78,7 @@ const result = await encrypt({
 ### Decrypt a Message
 
 ```typescript
-import { decrypt } from '@localpgp/core';
+import { decrypt } from '@kript/core';
 
 const result = await decrypt({
   message: encryptedMessage,
@@ -91,7 +91,7 @@ const result = await decrypt({
 ### Sign a Message
 
 ```typescript
-import { sign } from '@localpgp/core';
+import { sign } from '@kript/core';
 
 const result = await sign({
   message: 'Message to sign',
@@ -104,7 +104,7 @@ const result = await sign({
 ### Verify a Signature
 
 ```typescript
-import { verify } from '@localpgp/core';
+import { verify } from '@kript/core';
 
 const results = await verify({
   message: signedMessage,

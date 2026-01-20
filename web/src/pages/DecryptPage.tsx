@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button, Card, TextArea, Select, Input, Alert, Spinner, Badge } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
-import { decrypt, decryptWithPassword, VerificationResult } from '@localpgp/core';
+import { decrypt, decryptWithPassword, VerificationResult } from '@kript/core';
 
 export default function DecryptPage() {
   const { keys, loading } = useKeyring();

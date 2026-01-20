@@ -1,6 +1,6 @@
-# Contributing to LocalPGP
+# Contributing to Kript
 
-Thank you for your interest in contributing to LocalPGP! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Kript! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -39,8 +39,8 @@ By participating in this project, you agree to abide by our [Code of Conduct](..
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/localpgp.git
-cd localpgp
+git clone https://github.com/YOUR_USERNAME/kript.git
+cd kript
 
 # Install dependencies
 npm install
@@ -58,7 +58,7 @@ npm run dev
 ## Project Structure
 
 ```
-localpgp/
+kript/
 ├── core/           # Shared crypto logic
 │   └── src/
 │       ├── types.ts      # Type definitions
@@ -200,4 +200,4 @@ Contributors will be recognized in:
 - Release notes
 - Project documentation
 
-Thank you for contributing to LocalPGP!
+Thank you for contributing to Kript!

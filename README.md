@@ -1,9 +1,9 @@
-# LocalPGP
+# Kript
 
 A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces.
 
-![CI](https://github.com/yourusername/localpgp/workflows/CI/badge.svg)
-![License](https://img.shields.io/github/license/yourusername/localpgp)
+![CI](https://github.com/gabrielee5/kript/workflows/CI/badge.svg)
+![License](https://img.shields.io/github/license/gabrielee5/kript)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 
 ## Features
@@ -20,8 +20,8 @@ A modern, open-source PGP encryption tool that runs entirely locally with both C
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 npm install
 npm run build
 
@@ -46,20 +46,20 @@ npm run dev
 
 ```bash
 # Key Management
-localpgp generate              # Generate new key pair
-localpgp list-keys             # List all keys
-localpgp import-key <file>     # Import a key
-localpgp export-key <keyid>    # Export a key
-localpgp delete-key <keyid>    # Delete a key
+kript generate              # Generate new key pair
+kript list-keys             # List all keys
+kript import-key <file>     # Import a key
+kript export-key <keyid>    # Export a key
+kript delete-key <keyid>    # Delete a key
 
 # Encryption
-localpgp encrypt <file> -r <recipient>    # Encrypt with public key
-localpgp encrypt <file> -c                # Encrypt with password
-localpgp decrypt <file>                   # Decrypt
+kript encrypt <file> -r <recipient>    # Encrypt with public key
+kript encrypt <file> -c                # Encrypt with password
+kript decrypt <file>                   # Decrypt
 
 # Signing
-localpgp sign <file>           # Sign a message
-localpgp verify <file>         # Verify a signature
+kript sign <file>           # Sign a message
+kript verify <file>         # Verify a signature
 ```
 
 ## Web Interface
@@ -86,7 +86,7 @@ The web interface provides:
 ## Architecture
 
 ```
-localpgp/
+kript/
 ├── core/       # Shared cryptographic library
 ├── cli/        # Command-line interface
 ├── web/        # React web application

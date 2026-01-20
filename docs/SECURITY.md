@@ -2,18 +2,18 @@
 
 ## Overview
 
-LocalPGP is designed with security as a primary concern. This document outlines our security model, best practices, and known limitations.
+Kript is designed with security as a primary concern. This document outlines our security model, best practices, and known limitations.
 
 ## Threat Model
 
-### What LocalPGP Protects Against
+### What Kript Protects Against
 
 1. **Eavesdropping** - Encrypted messages cannot be read by third parties
 2. **Tampering** - Signed messages cannot be modified without detection
 3. **Impersonation** - Digital signatures prove the identity of the signer
 4. **Key Compromise** - Passphrase-protected private keys require the passphrase to use
 
-### What LocalPGP Does NOT Protect Against
+### What Kript Does NOT Protect Against
 
 1. **Compromised Endpoints** - If your device is compromised, an attacker may access keys in memory
 2. **Social Engineering** - Users may be tricked into trusting malicious keys
@@ -33,7 +33,7 @@ LocalPGP is designed with security as a primary concern. This document outlines 
 ### Key Storage
 
 **CLI:**
-- Keys stored in `~/.localpgp/` directory
+- Keys stored in `~/.kript/` directory
 - Private keys are encrypted with user passphrase
 - File permissions should be set to 600 (owner read/write only)
 
@@ -45,7 +45,7 @@ LocalPGP is designed with security as a primary concern. This document outlines 
 
 ### No External Communication
 
-LocalPGP operates entirely offline:
+Kript operates entirely offline:
 - No telemetry or analytics
 - No automatic updates
 - No key server integration by default
@@ -131,7 +131,7 @@ The web interface runs in a browser sandbox with limitations:
 
 ## Security Checklist
 
-### Before Using LocalPGP
+### Before Using Kript
 
 - [ ] Generated keys on a trusted device
 - [ ] Used a strong passphrase
@@ -163,7 +163,7 @@ If you discover a security vulnerability:
 
 ## Audit Status
 
-LocalPGP has not undergone a formal security audit. While we follow security best practices and use well-audited libraries, users requiring certified security should wait for formal audit completion.
+Kript has not undergone a formal security audit. While we follow security best practices and use well-audited libraries, users requiring certified security should wait for formal audit completion.
 
 ## References
 

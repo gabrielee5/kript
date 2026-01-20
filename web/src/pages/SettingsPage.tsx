@@ -1,7 +1,7 @@
 import { Button, Card, Select, Input, Alert } from '../components/ui';
 import { useSettings } from '../hooks/useSettings';
 import { useKeyring } from '../hooks/useKeyring';
-import { KeyAlgorithm } from '@localpgp/core';
+import { KeyAlgorithm } from '@kript/core';
 
 export default function SettingsPage() {
   const { settings, setSettings, resetSettings, loading } = useSettings();
@@ -21,7 +21,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `localpgp-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `kript-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -30,7 +30,7 @@ export default function SettingsPage() {
     if (confirm('This will delete ALL keys and settings. This action cannot be undone. Are you sure?')) {
       if (confirm('Last chance! All your keys will be permanently deleted.')) {
         localStorage.clear();
-        indexedDB.deleteDatabase('localpgp');
+        indexedDB.deleteDatabase('kript');
         window.location.reload();
       }
     }
@@ -44,7 +44,7 @@ export default function SettingsPage() {
     <div>
       <div className="mb-xl">
         <h1 className="text-4xl font-semibold leading-tight">Settings</h1>
-        <p className="text-text-secondary mt-tiny">Configure LocalPGP preferences</p>
+        <p className="text-text-secondary mt-tiny">Configure Kript preferences</p>
       </div>
 
       <div className="flex flex-col gap-lg max-w-2xl">
@@ -123,7 +123,7 @@ export default function SettingsPage() {
 
         {/* About */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">About LocalPGP</h2>
+          <h2 className="text-lg font-semibold mb-md">About Kript</h2>
 
           <div className="flex flex-col gap-sm text-sm">
             <div>
@@ -133,13 +133,13 @@ export default function SettingsPage() {
               <strong>Powered by:</strong> OpenPGP.js
             </div>
             <div className="text-text-secondary">
-              LocalPGP is an open-source PGP encryption tool that runs entirely
+              Kript is an open-source PGP encryption tool that runs entirely
               in your browser. All cryptographic operations are performed locally,
               and no data ever leaves your device.
             </div>
             <div className="mt-md">
               <a
-                href="https://github.com/yourusername/localpgp"
+                href="https://github.com/gabrielee5/kript"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-text-primary underline hover:no-underline"

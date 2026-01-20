@@ -17,5 +17,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`LocalPGP web server running at http://localhost:${PORT}`);
+  console.log(`Kript web server running at http://localhost:${PORT}`);
 });

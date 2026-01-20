@@ -12,8 +12,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 
 # Install all dependencies
 npm install
@@ -31,20 +31,20 @@ After building from source:
 cd cli
 npm link
 
-# Now you can use 'localpgp' command directly
-localpgp --help
+# Now you can use 'kript' command directly
+kript --help
 ```
 
 ### Method 3: Development Setup
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 npm install
 
 # Build core library first (required by CLI and web)
-npm run build --workspace=@localpgp/core
+npm run build --workspace=@kript/core
 
 # Run CLI in development
 npm run cli -- --help
@@ -66,8 +66,8 @@ node --version  # Should be 18.x or higher
 npm --version   # Should be 9.x or higher
 
 # Clone and build
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 npm install
 npm run build
 ```
@@ -84,8 +84,8 @@ node --version
 npm --version
 
 # Clone and build
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 npm install
 npm run build
 ```
@@ -98,8 +98,8 @@ curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
 sudo dnf install -y nodejs
 
 # Clone and build
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 npm install
 npm run build
 ```
@@ -112,8 +112,8 @@ npm run build
 
 ```powershell
 # Clone the repository
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 
 # Install dependencies
 npm install
@@ -189,7 +189,7 @@ On Windows, if the CLI doesn't work:
 To update to the latest version:
 
 ```bash
-cd localpgp
+cd kript
 git pull
 npm install
 npm run build
@@ -199,9 +199,9 @@ npm run build
 
 ```bash
 # Remove global CLI link (if installed)
-npm unlink localpgp
+npm unlink kript
 
 # Remove the directory
 cd ..
-rm -rf localpgp
+rm -rf kript
 ```

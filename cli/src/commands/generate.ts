@@ -9,7 +9,7 @@ import {
   Keyring,
   KeyAlgorithm,
   checkPassphraseStrength,
-} from '@localpgp/core';
+} from '@kript/core';
 import { FileStorageAdapter } from '../storage.js';
 import {
   createSpinner,

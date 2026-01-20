@@ -10,7 +10,7 @@ import {
   decryptFile,
   decryptWithPassword,
   Keyring,
-} from '@localpgp/core';
+} from '@kript/core';
 import { FileStorageAdapter, readFileBinary, readFileContent, writeFileContent, writeFileBinary, fileExists } from '../storage.js';
 import {
   createSpinner,

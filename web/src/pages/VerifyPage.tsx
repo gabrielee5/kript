@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button, Card, TextArea, Alert, Spinner, Badge } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
-import { verify, VerificationResult, extractCleartextMessage } from '@localpgp/core';
+import { verify, VerificationResult, extractCleartextMessage } from '@kript/core';
 
 export default function VerifyPage() {
   const { keys, loading } = useKeyring();

@@ -1,5 +1,5 @@
 /**
- * Utility functions for LocalPGP
+ * Utility functions for Kript
  */
 
 import { UserId } from './types.js';

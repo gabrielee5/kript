@@ -37,12 +37,12 @@ jobs:
           cp -r web/dist release/web
           cp -r docs release/docs
           cp LICENSE README.md release/
-          cd release && zip -r ../localpgp-${{ github.ref_name }}.zip .
+          cd release && zip -r ../kript-${{ github.ref_name }}.zip .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: localpgp-${{ github.ref_name }}.zip
+          files: kript-${{ github.ref_name }}.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

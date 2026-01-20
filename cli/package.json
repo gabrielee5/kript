@@ -1,10 +1,10 @@
 {
-  "name": "@localpgp/cli",
+  "name": "@kript/cli",
   "version": "1.0.0",
-  "description": "Command-line interface for LocalPGP",
+  "description": "Command-line interface for Kript",
   "type": "module",
   "bin": {
-    "localpgp": "./dist/index.js"
+    "kript": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@localpgp/core": "*",
+    "@kript/core": "*",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "inquirer": "^9.2.12",

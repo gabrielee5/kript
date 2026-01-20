@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { KeyAlgorithm } from '@localpgp/core';
+import { KeyAlgorithm } from '@kript/core';
 
-const SETTINGS_KEY = 'localpgp_settings';
+const SETTINGS_KEY = 'kript_settings';
 
 export interface Settings {
   defaultAlgorithm: KeyAlgorithm;

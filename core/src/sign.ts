@@ -1,5 +1,5 @@
 /**
- * Signing and verification functions for LocalPGP
+ * Signing and verification functions for Kript
  */
 
 import * as openpgp from 'openpgp';

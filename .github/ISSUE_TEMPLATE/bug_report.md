@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
 - OS: [e.g., macOS 14.0, Windows 11, Ubuntu 22.04]
 - Node.js version: [e.g., 20.10.0]
 - Browser (if using web interface): [e.g., Chrome 120, Firefox 121]
-- LocalPGP version: [e.g., 1.0.0]
+- Kript version: [e.g., 1.0.0]
 
 ## Additional Context
 Add any other context about the problem here.

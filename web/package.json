@@ -1,7 +1,7 @@
 {
-  "name": "@localpgp/web",
+  "name": "@kript/web",
   "version": "1.0.0",
-  "description": "Web interface for LocalPGP",
+  "description": "Web interface for Kript",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@localpgp/core": "*",
+    "@kript/core": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",

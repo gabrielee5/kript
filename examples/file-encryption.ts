@@ -1,10 +1,10 @@
 /**
- * LocalPGP File Encryption Example
+ * Kript File Encryption Example
  *
  * This example demonstrates encrypting and decrypting files.
  */
 
-import { generateKeyPair, encryptFile, decryptFile } from '@localpgp/core';
+import { generateKeyPair, encryptFile, decryptFile } from '@kript/core';
 
 async function main() {
   console.log('=== File Encryption Example ===\n');

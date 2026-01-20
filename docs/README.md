@@ -1,4 +1,4 @@
-# LocalPGP
+# Kript
 
 A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces.
 
@@ -18,8 +18,8 @@ A modern, open-source PGP encryption tool that runs entirely locally with both C
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/localpgp.git
-cd localpgp
+git clone https://github.com/gabrielee5/kript.git
+cd kript
 
 # Install dependencies
 npm install
@@ -73,7 +73,7 @@ Then open http://localhost:3000 in your browser.
 ## Architecture
 
 ```
-localpgp/
+kript/
 ├── core/       # Shared crypto logic (OpenPGP.js wrapper)
 ├── cli/        # Terminal interface (Commander.js)
 ├── web/        # Web application (React + Vite)

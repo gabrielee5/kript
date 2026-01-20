@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Card, Badge, Modal, Input, Select, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { useSettings } from '../hooks/useSettings';
-import { formatFingerprint, formatDate, daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength } from '@localpgp/core';
+import { formatFingerprint, formatDate, daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength } from '@kript/core';
 
 export default function KeysPage() {
   const { keys, loading, error, deleteKey, generateKey, addKey, refresh } = useKeyring();

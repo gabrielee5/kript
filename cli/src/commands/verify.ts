@@ -5,7 +5,7 @@
 import { Command } from 'commander';
 import { resolve } from 'node:path';
 import chalk from 'chalk';
-import { verify, verifyFile, extractCleartextMessage, Keyring } from '@localpgp/core';
+import { verify, verifyFile, extractCleartextMessage, Keyring } from '@kript/core';
 import { FileStorageAdapter, readFileBinary, readFileContent, fileExists } from '../storage.js';
 import {
   createSpinner,

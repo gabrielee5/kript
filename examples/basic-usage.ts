@@ -1,7 +1,7 @@
 /**
- * LocalPGP Basic Usage Examples
+ * Kript Basic Usage Examples
  *
- * This file demonstrates common use cases for the LocalPGP library.
+ * This file demonstrates common use cases for the Kript library.
  * Run with: npx ts-node examples/basic-usage.ts
  */
 
@@ -13,10 +13,10 @@ import {
   verify,
   Keyring,
   MemoryStorageAdapter,
-} from '@localpgp/core';
+} from '@kript/core';
 
 async function main() {
-  console.log('=== LocalPGP Basic Usage Examples ===\n');
+  console.log('=== Kript Basic Usage Examples ===\n');
 
   // 1. Generate Key Pairs
   console.log('1. Generating key pairs...');

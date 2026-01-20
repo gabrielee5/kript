@@ -1,5 +1,5 @@
 /**
- * Core types for LocalPGP
+ * Core types for Kript
  */
 
 /** Supported key algorithms */

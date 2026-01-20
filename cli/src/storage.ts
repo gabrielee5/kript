@@ -5,9 +5,9 @@
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { StorageAdapter } from '@localpgp/core';
+import type { StorageAdapter } from '@kript/core';
 
-const CONFIG_DIR = join(homedir(), '.localpgp');
+const CONFIG_DIR = join(homedir(), '.kript');
 
 /**
  * Ensure the config directory exists

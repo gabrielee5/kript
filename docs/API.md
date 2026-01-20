@@ -5,7 +5,7 @@
 ### Key Generation
 
 ```bash
-localpgp generate [options]
+kript generate [options]
 ```
 
 Generate a new PGP key pair.
@@ -21,16 +21,16 @@ Generate a new PGP key pair.
 **Examples:**
 ```bash
 # Interactive generation
-localpgp generate
+kript generate
 
 # Non-interactive with options
-localpgp generate -n "John Doe" -e "john@example.com" -a curve25519
+kript generate -n "John Doe" -e "john@example.com" -a curve25519
 ```
 
 ### Encryption
 
 ```bash
-localpgp encrypt [file] [options]
+kript encrypt [file] [options]
 ```
 
 Encrypt a message or file.
@@ -47,22 +47,22 @@ Encrypt a message or file.
 **Examples:**
 ```bash
 # Encrypt to recipient
-localpgp encrypt -r bob@example.com message.txt -o message.txt.pgp
+kript encrypt -r bob@example.com message.txt -o message.txt.pgp
 
 # Encrypt with password
-localpgp encrypt -c secret.txt -o secret.txt.pgp
+kript encrypt -c secret.txt -o secret.txt.pgp
 
 # Encrypt and sign
-localpgp encrypt -r bob@example.com -s message.txt
+kript encrypt -r bob@example.com -s message.txt
 
 # Encrypt from stdin
-echo "Secret message" | localpgp encrypt -r bob@example.com
+echo "Secret message" | kript encrypt -r bob@example.com
 ```
 
 ### Decryption
 
 ```bash
-localpgp decrypt [file] [options]
+kript decrypt [file] [options]
 ```
 
 Decrypt a message or file.
@@ -75,19 +75,19 @@ Decrypt a message or file.
 **Examples:**
 ```bash
 # Decrypt file
-localpgp decrypt message.txt.pgp -o message.txt
+kript decrypt message.txt.pgp -o message.txt
 
 # Decrypt with specific key
-localpgp decrypt -k ABCD1234 message.txt.pgp
+kript decrypt -k ABCD1234 message.txt.pgp
 
 # Decrypt password-protected
-localpgp decrypt -c secret.txt.pgp
+kript decrypt -c secret.txt.pgp
 ```
 
 ### Signing
 
 ```bash
-localpgp sign [file] [options]
+kript sign [file] [options]
 ```
 
 Sign a message or file.
@@ -101,19 +101,19 @@ Sign a message or file.
 **Examples:**
 ```bash
 # Sign a file
-localpgp sign document.txt -o document.txt.sig
+kript sign document.txt -o document.txt.sig
 
 # Create detached signature
-localpgp sign -d document.txt -o document.txt.sig
+kript sign -d document.txt -o document.txt.sig
 
 # Sign from stdin
-echo "Important message" | localpgp sign
+echo "Important message" | kript sign
 ```
 
 ### Verification
 
 ```bash
-localpgp verify [file] [options]
+kript verify [file] [options]
 ```
 
 Verify a signature.
@@ -125,10 +125,10 @@ Verify a signature.
 **Examples:**
 ```bash
 # Verify signed message
-localpgp verify signed-message.asc
+kript verify signed-message.asc
 
 # Verify detached signature
-localpgp verify document.txt -s document.txt.sig
+kript verify document.txt -s document.txt.sig
 ```
 
 ### Key Management
@@ -136,7 +136,7 @@ localpgp verify document.txt -s document.txt.sig
 #### List Keys
 
 ```bash
-localpgp list-keys [options]
+kript list-keys [options]
 ```
 
 **Options:**
@@ -147,23 +147,23 @@ localpgp list-keys [options]
 #### Import Key
 
 ```bash
-localpgp import-key [file]
+kript import-key [file]
 ```
 
 Import a key from file or stdin.
 
 ```bash
 # From file
-localpgp import-key pubkey.asc
+kript import-key pubkey.asc
 
 # From stdin
-cat pubkey.asc | localpgp import-key
+cat pubkey.asc | kript import-key
 ```
 
 #### Export Key
 
 ```bash
-localpgp export-key <keyid> [options]
+kript export-key <keyid> [options]
 ```
 
 **Options:**
@@ -172,16 +172,16 @@ localpgp export-key <keyid> [options]
 
 ```bash
 # Export public key
-localpgp export-key john@example.com -o pubkey.asc
+kript export-key john@example.com -o pubkey.asc
 
 # Export private key (use with caution!)
-localpgp export-key john@example.com --private -o privkey.asc
+kript export-key john@example.com --private -o privkey.asc
 ```
 
 #### Delete Key
 
 ```bash
-localpgp delete-key <keyid> [options]
+kript delete-key <keyid> [options]
 ```
 
 **Options:**
@@ -190,7 +190,7 @@ localpgp delete-key <keyid> [options]
 #### Search Keys
 
 ```bash
-localpgp search <query>
+kript search <query>
 ```
 
 Search keys by name or email.
@@ -198,7 +198,7 @@ Search keys by name or email.
 #### Revoke Key
 
 ```bash
-localpgp revoke <keyid> [options]
+kript revoke <keyid> [options]
 ```
 
 Generate a revocation certificate.
@@ -222,13 +222,13 @@ import {
   verify,
   Keyring,
   IndexedDBStorageAdapter,
-} from '@localpgp/core';
+} from '@kript/core';
 ```
 
 ### Key Generation
 
 ```typescript
-import { generateKeyPair } from '@localpgp/core';
+import { generateKeyPair } from '@kript/core';
 
 const result = await generateKeyPair({
   algorithm: 'curve25519', // or 'rsa2048', 'rsa4096'
@@ -246,7 +246,7 @@ console.log(result.keyInfo);
 ### Encryption
 
 ```typescript
-import { encrypt, decrypt } from '@localpgp/core';
+import { encrypt, decrypt } from '@kript/core';
 
 // Encrypt
 const encrypted = await encrypt({
@@ -271,7 +271,7 @@ console.log(decrypted.signatures);
 ### Signing
 
 ```typescript
-import { sign, verify } from '@localpgp/core';
+import { sign, verify } from '@kript/core';
 
 // Sign
 const signed = await sign({
@@ -294,7 +294,7 @@ console.log(results[0].signedBy);
 ### Keyring Management
 
 ```typescript
-import { Keyring, IndexedDBStorageAdapter } from '@localpgp/core';
+import { Keyring, IndexedDBStorageAdapter } from '@kript/core';
 
 // Create keyring with browser storage
 const storage = new IndexedDBStorageAdapter();

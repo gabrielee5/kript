@@ -1,7 +1,7 @@
 {
-  "name": "@localpgp/core",
+  "name": "@kript/core",
   "version": "1.0.0",
-  "description": "Core cryptographic module for LocalPGP",
+  "description": "Core cryptographic module for Kript",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

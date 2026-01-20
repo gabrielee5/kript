@@ -9,7 +9,7 @@ import {
   encryptFile,
   encryptWithPassword,
   Keyring,
-} from '@localpgp/core';
+} from '@kript/core';
 import { FileStorageAdapter, readFileBinary, writeFileContent, writeFileBinary, fileExists } from '../storage.js';
 import {
   createSpinner,

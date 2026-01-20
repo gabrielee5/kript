@@ -1,5 +1,5 @@
 /**
- * Encryption and decryption functions for LocalPGP
+ * Encryption and decryption functions for Kript
  */
 
 import * as openpgp from 'openpgp';

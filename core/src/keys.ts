@@ -1,5 +1,5 @@
 /**
- * Key management functions for LocalPGP
+ * Key management functions for Kript
  */
 
 import * as openpgp from 'openpgp';

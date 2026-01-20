@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button, Card, TextArea, Select, Input, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
-import { sign } from '@localpgp/core';
+import { sign } from '@kript/core';
 
 export default function SignPage() {
   const { keys, loading } = useKeyring();

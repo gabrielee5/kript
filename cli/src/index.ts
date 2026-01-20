@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * LocalPGP CLI - A modern, local-first PGP encryption tool
+ * Kript CLI - A modern, local-first PGP encryption tool
  */
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { VERSION } from '@localpgp/core';
+import { VERSION } from '@kript/core';
 
 // Import commands
 import { createGenerateCommand } from './commands/generate.js';
@@ -28,40 +28,40 @@ const program = new Command();
 
 // Program metadata
 program
-  .name('localpgp')
+  .name('kript')
   .description('A modern, local-first PGP encryption tool')
   .version(VERSION, '-v, --version', 'Output the version number')
   .addHelpText('after', `
 ${chalk.bold('Examples:')}
   ${chalk.gray('# Generate a new key pair')}
-  $ localpgp generate
+  $ kript generate
 
   ${chalk.gray('# List all keys')}
-  $ localpgp list-keys
+  $ kript list-keys
 
   ${chalk.gray('# Encrypt a file')}
-  $ localpgp encrypt -r recipient@example.com message.txt -o message.txt.pgp
+  $ kript encrypt -r recipient@example.com message.txt -o message.txt.pgp
 
   ${chalk.gray('# Decrypt a file')}
-  $ localpgp decrypt message.txt.pgp -o message.txt
+  $ kript decrypt message.txt.pgp -o message.txt
 
   ${chalk.gray('# Sign a message')}
-  $ echo "Hello" | localpgp sign
+  $ echo "Hello" | kript sign
 
   ${chalk.gray('# Verify a signature')}
-  $ localpgp verify signed-message.asc
+  $ kript verify signed-message.asc
 
   ${chalk.gray('# Import a public key')}
-  $ localpgp import-key pubkey.asc
+  $ kript import-key pubkey.asc
 
   ${chalk.gray('# Export your public key')}
-  $ localpgp export-key mykey@example.com -o pubkey.asc
+  $ kript export-key mykey@example.com -o pubkey.asc
 
 ${chalk.bold('Configuration:')}
   Keys are stored in: ${chalk.cyan(getConfigDir())}
 
 ${chalk.bold('More information:')}
-  https://github.com/yourusername/localpgp
+  https://github.com/gabrielee5/kript
 `);
 
 // Register commands

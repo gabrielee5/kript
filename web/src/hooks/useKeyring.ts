@@ -7,14 +7,14 @@ import {
   generateKeyPair,
   KeyAlgorithm,
   UserId,
-} from '@localpgp/core';
+} from '@kript/core';
 
 // Create singleton keyring instance
 let keyringInstance: Keyring | null = null;
 
 function getKeyring(): Keyring {
   if (!keyringInstance) {
-    const storage = new IndexedDBStorageAdapter('localpgp');
+    const storage = new IndexedDBStorageAdapter('kript');
     keyringInstance = new Keyring(storage);
   }
   return keyringInstance;

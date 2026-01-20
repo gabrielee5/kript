@@ -1,5 +1,5 @@
 /**
- * Keyring management for LocalPGP
+ * Keyring management for Kript
  */
 
 import {
@@ -12,7 +12,7 @@ import {
 import { readKey, extractKeyInfo } from './keys.js';
 import { getShortKeyId } from './utils.js';
 
-const KEYRING_STORAGE_KEY = 'localpgp_keyring';
+const KEYRING_STORAGE_KEY = 'kript_keyring';
 
 /**
  * Keyring class for managing PGP keys
@@ -338,7 +338,7 @@ export class MemoryStorageAdapter implements StorageAdapter {
 export class LocalStorageAdapter implements StorageAdapter {
   private prefix: string;
 
-  constructor(prefix = 'localpgp_') {
+  constructor(prefix = 'kript_') {
     this.prefix = prefix;
   }
 
@@ -395,7 +395,7 @@ export class IndexedDBStorageAdapter implements StorageAdapter {
   private storeName = 'keyring';
   private db: IDBDatabase | null = null;
 
-  constructor(dbName = 'localpgp') {
+  constructor(dbName = 'kript') {
     this.dbName = dbName;
   }
 

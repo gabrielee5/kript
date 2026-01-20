@@ -11,7 +11,7 @@ import {
   exportKey,
   readKey,
   generateRevocationCertificate,
-} from '@localpgp/core';
+} from '@kript/core';
 import { FileStorageAdapter, readFileContent, writeFileContent, fileExists } from '../storage.js';
 import {
   createSpinner,

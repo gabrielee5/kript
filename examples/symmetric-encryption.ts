@@ -1,10 +1,10 @@
 /**
- * LocalPGP Symmetric (Password) Encryption Example
+ * Kript Symmetric (Password) Encryption Example
  *
  * This example demonstrates encrypting with a password instead of public keys.
  */
 
-import { encryptWithPassword, decryptWithPassword } from '@localpgp/core';
+import { encryptWithPassword, decryptWithPassword } from '@kript/core';
 
 async function main() {
   console.log('=== Symmetric Encryption Example ===\n');

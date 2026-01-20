@@ -43,7 +43,7 @@ yarn-error.log*
 !examples/*.asc
 
 # Keyring storage
-.localpgp/
+.kript/
 keyring/
 
 # Temporary files

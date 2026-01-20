@@ -1,5 +1,5 @@
 /**
- * LocalPGP Core Module
+ * Kript Core Module
  *
  * A modern, local-first PGP encryption library built on OpenPGP.js
  */

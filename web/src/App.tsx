@@ -39,7 +39,7 @@ function App() {
                 <rect x="3" y="11" width="18" height="11" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-              <span className="text-lg font-semibold tracking-tight">LOCALPGP</span>
+              <span className="text-lg font-semibold tracking-tight">KRIPT</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -132,10 +132,10 @@ function App() {
       <footer className="border-t border-border mt-2xl">
         <div className="max-w-[80rem] mx-auto px-lg py-lg">
           <div className="flex flex-col md:flex-row justify-between items-center gap-md text-xs text-text-secondary">
-            <div>LocalPGP v1.0.0 - All operations run locally in your browser</div>
+            <div>Kript v1.0.0 - All operations run locally in your browser</div>
             <div className="flex items-center gap-lg">
               <a
-                href="https://github.com/yourusername/localpgp"
+                href="https://github.com/gabrielee5/kript"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-text-primary transition-all duration-150"

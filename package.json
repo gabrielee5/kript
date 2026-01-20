@@ -1,5 +1,5 @@
 {
-  "name": "localpgp",
+  "name": "kript",
   "version": "1.0.0",
   "description": "A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces",
   "private": true,
@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/localpgp.git"
+    "url": "https://github.com/gabrielee5/kript.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/localpgp/issues"
+    "url": "https://github.com/gabrielee5/kript/issues"
   },
-  "homepage": "https://github.com/yourusername/localpgp#readme",
+  "homepage": "https://github.com/gabrielee5/kript#readme",
   "engines": {
     "node": ">=18.0.0"
   },
