@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Card, Badge, Modal, Input, Select, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { useSettings } from '../hooks/useSettings';
-import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength } from '@kript/core';
+import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey } from '@kript/core';
 
 export default function KeysPage() {
   const { keys, loading, error, deleteKey, generateKey, addKey } = useKeyring();
@@ -17,6 +17,12 @@ export default function KeysPage() {
   const [genError, setGenError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [revocationCert, setRevocationCert] = useState<string | null>(null);
+
+  // Export private key state
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
+  const [exportPassphrase, setExportPassphrase] = useState('');
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [verifyingPassphrase, setVerifyingPassphrase] = useState(false);
 
   // Generate form state
   const [genName, setGenName] = useState('');
@@ -107,6 +113,27 @@ export default function KeysPage() {
     setGenPassphrase('');
     setGenConfirmPassphrase('');
     setGenError(null);
+  };
+
+  const resetExportState = () => {
+    setShowPrivateKey(false);
+    setExportPassphrase('');
+    setExportError(null);
+    setVerifyingPassphrase(false);
+  };
+
+  const handleVerifyPassphrase = async (privateKey: string) => {
+    setExportError(null);
+    setVerifyingPassphrase(true);
+
+    try {
+      await decryptPrivateKey(privateKey, exportPassphrase);
+      setShowPrivateKey(true);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Invalid passphrase');
+    } finally {
+      setVerifyingPassphrase(false);
+    }
   };
 
   const passphraseStrength = genPassphrase ? checkPassphraseStrength(genPassphrase) : null;
@@ -404,10 +431,14 @@ export default function KeysPage() {
         onClose={() => {
           setShowExportModal(false);
           setSelectedKey(null);
+          resetExportState();
         }}
         title="Export Key"
         footer={
-          <Button variant="secondary" onClick={() => setShowExportModal(false)}>
+          <Button variant="secondary" onClick={() => {
+            setShowExportModal(false);
+            resetExportState();
+          }}>
             Close
           </Button>
         }
@@ -436,9 +467,62 @@ export default function KeysPage() {
               </div>
 
               {entry.privateKey && (
-                <Alert variant="warning">
-                  Private key export is available. Handle with care!
-                </Alert>
+                <div>
+                  {!showPrivateKey ? (
+                    <>
+                      <Alert variant="warning" className="mb-sm">
+                        Private key export is available. Enter your passphrase to reveal it.
+                      </Alert>
+                      {exportError && (
+                        <Alert variant="danger" className="mb-sm">
+                          {exportError}
+                        </Alert>
+                      )}
+                      <div className="flex gap-sm items-end">
+                        <Input
+                          label="Passphrase"
+                          type="password"
+                          value={exportPassphrase}
+                          onChange={(e) => setExportPassphrase(e.target.value)}
+                          placeholder="Enter passphrase"
+                          className="flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleVerifyPassphrase(entry.privateKey!);
+                            }
+                          }}
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleVerifyPassphrase(entry.privateKey!)}
+                          loading={verifyingPassphrase}
+                        >
+                          Reveal Private Key
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Alert variant="danger" className="mb-sm">
+                        Handle with extreme care! Never share your private key.
+                      </Alert>
+                      <div className="text-xs text-text-secondary uppercase tracking-wide mb-tiny">
+                        Private Key
+                      </div>
+                      <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
+                        {entry.privateKey}
+                      </pre>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-sm"
+                        onClick={() => navigator.clipboard.writeText(entry.privateKey!)}
+                      >
+                        Copy Private Key
+                      </Button>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           );
