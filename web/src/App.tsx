@@ -6,6 +6,7 @@ import DecryptPage from './pages/DecryptPage';
 import SignPage from './pages/SignPage';
 import VerifyPage from './pages/VerifyPage';
 import SettingsPage from './pages/SettingsPage';
+import InfoPage from './pages/InfoPage';
 
 const navItems = [
   { path: '/', label: 'KEYS' },
@@ -125,6 +126,7 @@ function App() {
           <Route path="/sign" element={<SignPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/info" element={<InfoPage />} />
         </Routes>
       </main>
 
@@ -143,12 +145,12 @@ function App() {
                 >
                   GitHub
                 </a>
-                <a
-                  href="/docs"
+                <NavLink
+                  to="/info"
                   className="hover:text-text-primary transition-all duration-150"
                 >
-                  Docs
-                </a>
+                  Info
+                </NavLink>
               </div>
             </div>
             <div className="text-center">
