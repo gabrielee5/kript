@@ -1,5 +1,7 @@
 # Kript
 
+![Kript Dashboard](./assets/kript.xyz-dashboard.png)
+
 A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces.
 
 ![CI](https://github.com/gabrielee5/kript/workflows/CI/badge.svg)
