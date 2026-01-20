@@ -20,7 +20,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-bg-primary flex flex-col">
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-[80rem] mx-auto px-lg py-md">
@@ -117,7 +117,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[80rem] mx-auto px-lg py-2xl">
+      <main className="flex-1 max-w-[80rem] mx-auto px-lg py-2xl w-full">
         <Routes>
           <Route path="/" element={<KeysPage />} />
           <Route path="/encrypt" element={<EncryptPage />} />
@@ -129,7 +129,7 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-2xl">
+      <footer className="border-t border-border mt-auto">
         <div className="max-w-[80rem] mx-auto px-lg py-lg">
           <div className="flex flex-col md:flex-row justify-between items-center gap-md text-xs text-text-secondary">
             <div>Kript v1.0.0 - All operations run locally in your browser</div>
