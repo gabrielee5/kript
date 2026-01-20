@@ -4,10 +4,8 @@
 
 import { Command } from 'commander';
 import { resolve } from 'node:path';
-import chalk from 'chalk';
 import {
   decrypt,
-  decryptFile,
   decryptWithPassword,
   Keyring,
 } from '@kript/core';

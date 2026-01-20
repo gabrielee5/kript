@@ -5,14 +5,12 @@
 import { Command } from 'commander';
 import { resolve } from 'node:path';
 import chalk from 'chalk';
-import { verify, verifyFile, extractCleartextMessage, Keyring } from '@kript/core';
+import { verify, extractCleartextMessage, Keyring } from '@kript/core';
 import { FileStorageAdapter, readFileBinary, readFileContent, fileExists } from '../storage.js';
 import {
   createSpinner,
   success,
   error,
-  warning,
-  info,
   readStdin,
   hasStdin,
 } from '../utils.js';

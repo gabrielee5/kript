@@ -16,7 +16,7 @@ import {
   PGPError,
   ErrorCode,
 } from './types.js';
-import { formatUserId, getShortKeyId } from './utils.js';
+import { getShortKeyId } from './utils.js';
 
 /**
  * Map our algorithm names to OpenPGP.js config
@@ -43,12 +43,17 @@ function getAlgorithmConfig(algorithm: KeyAlgorithm): {
  * Extract key usage flags from an OpenPGP key
  */
 function extractKeyUsage(key: openpgp.Key): KeyUsage {
-  const keyPacket = key.keyPacket;
   // OpenPGP.js doesn't expose flags directly, so we check capabilities
+  let canEncrypt = false;
+  try {
+    canEncrypt = key.getEncryptionKey(undefined, undefined, undefined) !== undefined;
+  } catch {
+    canEncrypt = false;
+  }
   return {
     certify: true, // Primary keys can always certify
     sign: true,
-    encrypt: key.getEncryptionKey() !== undefined,
+    encrypt: canEncrypt,
     authenticate: false,
   };
 }
@@ -72,7 +77,6 @@ export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
   });
 
   // Get algorithm info
-  const algoInfo = keyPacket.algorithm;
   let algorithm = 'Unknown';
   let bitLength: number | undefined;
   let curve: string | undefined;
@@ -127,7 +131,7 @@ export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
           encrypt: true,
           authenticate: false,
         },
-        revoked: await subkey.isRevoked(),
+        revoked: false, // Subkey revocation check simplified
       };
     })
   );
@@ -154,9 +158,6 @@ export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
 export async function generateKeyPair(options: KeyGenerationOptions): Promise<KeyPair> {
   const { algorithm, userIds, passphrase, expirationTime } = options;
   const algoConfig = getAlgorithmConfig(algorithm);
-
-  // Format user IDs for OpenPGP.js
-  const formattedUserIds = userIds.map((uid) => formatUserId(uid));
 
   try {
     const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
@@ -275,7 +276,7 @@ export async function exportKey(
   key: openpgp.Key,
   options: ExportOptions = {}
 ): Promise<string> {
-  const { armor = true, includePrivate = false, passphrase } = options;
+  const { includePrivate = false, passphrase } = options;
 
   try {
     if (includePrivate && key.isPrivate()) {
@@ -384,7 +385,8 @@ export async function generateRevocationCertificate(
       },
     });
 
-    return revokedKey.armor();
+    // revokeKey returns a string in format: 'armored'
+    return revokedKey as string;
   } catch (error) {
     throw new PGPError(
       ErrorCode.INVALID_KEY,

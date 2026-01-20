@@ -12,8 +12,53 @@ import {
   PGPError,
   ErrorCode,
 } from './types.js';
-import { readKey, decryptPrivateKey, getPrimaryUserId } from './keys.js';
-import { getShortKeyId } from './utils.js';
+import { readKey, getPrimaryUserId } from './keys.js';
+
+/**
+ * Helper to convert a stream or value to string
+ */
+async function streamToString(stream: unknown): Promise<string> {
+  if (typeof stream === 'string') return stream;
+  // Handle ReadableStream-like objects (including WebStream)
+  const readable = stream as ReadableStream<string>;
+  const reader = readable.getReader();
+  const chunks: string[] = [];
+  let done = false;
+  while (!done) {
+    const result = await reader.read();
+    done = result.done;
+    if (result.value) chunks.push(result.value);
+  }
+  return chunks.join('');
+}
+
+/**
+ * Helper to convert a stream or value to Uint8Array
+ */
+async function streamToUint8Array(stream: unknown): Promise<Uint8Array> {
+  if (stream instanceof Uint8Array) return stream;
+  // Handle ReadableStream-like objects (including WebStream)
+  const readable = stream as ReadableStream<Uint8Array>;
+  const reader = readable.getReader();
+  const chunks: Uint8Array[] = [];
+  let done = false;
+  let totalLength = 0;
+  while (!done) {
+    const result = await reader.read();
+    done = result.done;
+    if (result.value) {
+      chunks.push(result.value);
+      totalLength += result.value.length;
+    }
+  }
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return combined;
+}
 
 /**
  * Encrypt a message or file
@@ -25,7 +70,6 @@ export async function encrypt(options: EncryptOptions): Promise<EncryptResult> {
     signingKey,
     signingKeyPassphrase,
     armor = true,
-    format = 'utf8',
   } = options;
 
   try {
@@ -58,15 +102,31 @@ export async function encrypt(options: EncryptOptions): Promise<EncryptResult> {
     }
 
     // Encrypt
-    const encrypted = await openpgp.encrypt({
-      message: pgpMessage,
-      encryptionKeys: publicKeys,
-      signingKeys: privateKey ? [privateKey] : undefined,
-      format: armor ? 'armored' : 'binary',
-    });
+    let encrypted: string | Uint8Array;
+    if (armor) {
+      const result = await openpgp.encrypt({
+        message: pgpMessage,
+        encryptionKeys: publicKeys,
+        signingKeys: privateKey ? [privateKey] : undefined,
+        format: 'armored',
+      });
+      // Handle stream or string result
+      encrypted = typeof result === 'string' ? result : await streamToString(result);
+    } else {
+      const binaryResult = await openpgp.encrypt({
+        message: pgpMessage,
+        encryptionKeys: publicKeys,
+        signingKeys: privateKey ? [privateKey] : undefined,
+        format: 'binary',
+      });
+      // Handle stream or Uint8Array result
+      encrypted = binaryResult instanceof Uint8Array
+        ? binaryResult
+        : await streamToUint8Array(binaryResult);
+    }
 
     return {
-      data: encrypted as string | Uint8Array,
+      data: encrypted,
     };
   } catch (error) {
     if (error instanceof PGPError) {
@@ -142,7 +202,6 @@ export async function decrypt(options: DecryptOptions): Promise<DecryptResult> {
             keyId: sigKeyId.slice(-8),
             fingerprint: sigKeyId,
             signedBy,
-            signatureTime: sig.signature.then ? undefined : new Date(),
           });
         } catch (error) {
           signatures.push({
@@ -154,8 +213,17 @@ export async function decrypt(options: DecryptOptions): Promise<DecryptResult> {
       }
     }
 
-    // Get the decrypted data
-    const data = decrypted.data;
+    // Get the decrypted data - handle stream if necessary
+    let data: string | Uint8Array;
+    if (typeof decrypted.data === 'string') {
+      data = decrypted.data;
+    } else if (decrypted.data instanceof Uint8Array) {
+      data = decrypted.data;
+    } else {
+      // Handle stream case
+      const response = new Response(decrypted.data as ReadableStream);
+      data = new Uint8Array(await response.arrayBuffer());
+    }
 
     return {
       data,
@@ -291,13 +359,26 @@ export async function encryptWithPassword(
       pgpMessage = await openpgp.createMessage({ binary: message });
     }
 
-    const encrypted = await openpgp.encrypt({
-      message: pgpMessage,
-      passwords: [password],
-      format: armor ? 'armored' : 'binary',
-    });
+    let encrypted: string | Uint8Array;
+    if (armor) {
+      const result = await openpgp.encrypt({
+        message: pgpMessage,
+        passwords: [password],
+        format: 'armored',
+      });
+      encrypted = typeof result === 'string' ? result : await streamToString(result);
+    } else {
+      const binaryResult = await openpgp.encrypt({
+        message: pgpMessage,
+        passwords: [password],
+        format: 'binary',
+      });
+      encrypted = binaryResult instanceof Uint8Array
+        ? binaryResult
+        : await streamToUint8Array(binaryResult);
+    }
 
-    return encrypted as string | Uint8Array;
+    return encrypted;
   } catch (error) {
     throw new PGPError(
       ErrorCode.ENCRYPTION_FAILED,
@@ -327,7 +408,15 @@ export async function decryptWithPassword(
       passwords: [password],
     });
 
-    return decrypted.data;
+    // Handle stream if necessary
+    if (typeof decrypted.data === 'string') {
+      return decrypted.data;
+    } else if (decrypted.data instanceof Uint8Array) {
+      return decrypted.data;
+    } else {
+      const response = new Response(decrypted.data as ReadableStream);
+      return new Uint8Array(await response.arrayBuffer());
+    }
   } catch (error) {
     throw new PGPError(
       ErrorCode.DECRYPTION_FAILED,

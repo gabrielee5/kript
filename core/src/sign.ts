@@ -11,8 +11,54 @@ import {
   PGPError,
   ErrorCode,
 } from './types.js';
-import { readKey, decryptPrivateKey, getPrimaryUserId } from './keys.js';
+import { readKey, getPrimaryUserId } from './keys.js';
 import { getShortKeyId } from './utils.js';
+
+/**
+ * Helper to convert a stream or value to string
+ */
+async function streamToString(stream: unknown): Promise<string> {
+  if (typeof stream === 'string') return stream;
+  // Handle ReadableStream-like objects (including WebStream)
+  const readable = stream as ReadableStream<string>;
+  const reader = readable.getReader();
+  const chunks: string[] = [];
+  let done = false;
+  while (!done) {
+    const result = await reader.read();
+    done = result.done;
+    if (result.value) chunks.push(result.value);
+  }
+  return chunks.join('');
+}
+
+/**
+ * Helper to convert a stream or value to Uint8Array
+ */
+async function streamToUint8Array(stream: unknown): Promise<Uint8Array> {
+  if (stream instanceof Uint8Array) return stream;
+  // Handle ReadableStream-like objects (including WebStream)
+  const readable = stream as ReadableStream<Uint8Array>;
+  const reader = readable.getReader();
+  const chunks: Uint8Array[] = [];
+  let done = false;
+  let totalLength = 0;
+  while (!done) {
+    const result = await reader.read();
+    done = result.done;
+    if (result.value) {
+      chunks.push(result.value);
+      totalLength += result.value.length;
+    }
+  }
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return combined;
+}
 
 /**
  * Sign a message
@@ -40,16 +86,30 @@ export async function sign(options: SignOptions): Promise<SignResult> {
 
     if (detached) {
       // Create detached signature
-      const signature = await openpgp.sign({
-        message: pgpMessage,
-        signingKeys: [privateKey],
-        detached: true,
-        format: armor ? 'armored' : 'binary',
-      });
+      let signature: string | Uint8Array;
+      if (armor) {
+        const result = await openpgp.sign({
+          message: pgpMessage,
+          signingKeys: [privateKey],
+          detached: true,
+          format: 'armored',
+        });
+        signature = typeof result === 'string' ? result : await streamToString(result);
+      } else {
+        const binaryResult = await openpgp.sign({
+          message: pgpMessage,
+          signingKeys: [privateKey],
+          detached: true,
+          format: 'binary',
+        });
+        signature = binaryResult instanceof Uint8Array
+          ? binaryResult
+          : await streamToUint8Array(binaryResult);
+      }
 
       return {
         data: message,
-        signature: signature as string | Uint8Array,
+        signature,
       };
     } else {
       // Create cleartext signed message
@@ -61,18 +121,31 @@ export async function sign(options: SignOptions): Promise<SignResult> {
         });
 
         return {
-          data: signed as string,
+          data: typeof signed === 'string' ? signed : await streamToString(signed),
         };
       } else {
         // For binary, we need to create a signed message
-        const signed = await openpgp.sign({
-          message: pgpMessage,
-          signingKeys: [privateKey],
-          format: armor ? 'armored' : 'binary',
-        });
+        let signed: string | Uint8Array;
+        if (armor) {
+          const result = await openpgp.sign({
+            message: pgpMessage,
+            signingKeys: [privateKey],
+            format: 'armored',
+          });
+          signed = typeof result === 'string' ? result : await streamToString(result);
+        } else {
+          const binaryResult = await openpgp.sign({
+            message: pgpMessage,
+            signingKeys: [privateKey],
+            format: 'binary',
+          });
+          signed = binaryResult instanceof Uint8Array
+            ? binaryResult
+            : await streamToUint8Array(binaryResult);
+        }
 
         return {
-          data: signed as string | Uint8Array,
+          data: signed,
         };
       }
     }

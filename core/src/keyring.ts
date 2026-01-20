@@ -4,13 +4,11 @@
 
 import {
   KeyringEntry,
-  KeyInfo,
   StorageAdapter,
   PGPError,
   ErrorCode,
 } from './types.js';
 import { readKey, extractKeyInfo } from './keys.js';
-import { getShortKeyId } from './utils.js';
 
 const KEYRING_STORAGE_KEY = 'kript_keyring';
 

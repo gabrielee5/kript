@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Button, Card, TextArea, Select, Input, Alert, Spinner, Badge } from '../components/ui';
+import { Button, Card, TextArea, Select, Input, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { decrypt, decryptWithPassword, VerificationResult } from '@kript/core';
 

@@ -20,7 +20,6 @@ import {
   promptPassphrase,
   readStdin,
   hasStdin,
-  formatKeyInfo,
 } from '../utils.js';
 
 export function createEncryptCommand(): Command {

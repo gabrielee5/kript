@@ -5,7 +5,7 @@
 import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { sign, signFile, Keyring } from '@kript/core';
-import { FileStorageAdapter, readFileBinary, readFileContent, writeFileContent, fileExists } from '../storage.js';
+import { FileStorageAdapter, readFileBinary, writeFileContent, fileExists } from '../storage.js';
 import {
   createSpinner,
   success,

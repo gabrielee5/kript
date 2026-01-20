@@ -8,8 +8,6 @@ import chalk from 'chalk';
 import {
   Keyring,
   importKeys,
-  exportKey,
-  readKey,
   generateRevocationCertificate,
 } from '@kript/core';
 import { FileStorageAdapter, readFileContent, writeFileContent, fileExists } from '../storage.js';
@@ -20,10 +18,8 @@ import {
   warning,
   info,
   formatKeyInfo,
-  divider,
   header,
   promptPassphrase,
-  promptSelect,
   confirm,
   readStdin,
   hasStdin,
@@ -131,7 +127,7 @@ export function createImportKeyCommand(): Command {
         const keyring = new Keyring(storage);
         await keyring.load();
 
-        for (const keyInfo of result.keys) {
+        for (const _key of result.keys) {
           // Determine if it's a private key
           const isPrivate = keyData.includes('-----BEGIN PGP PRIVATE KEY BLOCK-----');
           await keyring.addKey(keyData, isPrivate ? keyData : undefined);
