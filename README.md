@@ -68,7 +68,7 @@ kript verify <file>         # Verify a signature
 
 ## Web Interface
 
-Use the hosted version at **[kript.vercel.app](https://kript.vercel.app)** or run locally:
+Use the hosted version at **[kript.xyz](https://kript.xyz)** or run locally:
 
 ```bash
 npm run dev
