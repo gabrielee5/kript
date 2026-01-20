@@ -24,12 +24,13 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "openpgp": "^5.11.0"
+    "openpgp": "^5.11.0",
+    "vite": "7.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/coverage-v8": "^4.0.17",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.17"
   }
 }
