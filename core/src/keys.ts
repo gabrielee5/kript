@@ -76,15 +76,22 @@ export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
     };
   });
 
-  // Get algorithm info
+  // Get algorithm info using numeric algorithm enum
   let algorithm = 'Unknown';
   let bitLength: number | undefined;
   let curve: string | undefined;
 
-  if ('getBitSize' in keyPacket && typeof keyPacket.getBitSize === 'function') {
-    bitLength = keyPacket.getBitSize();
-    algorithm = `RSA-${bitLength}`;
-  } else if ('oid' in keyPacket) {
+  const algoNum = keyPacket.algorithm;
+  const publicParams = (keyPacket as { publicParams?: { n?: Uint8Array; oid?: unknown } }).publicParams;
+
+  // RSA algorithms: 1 = rsaEncryptSign, 2 = rsaEncrypt, 3 = rsaSign
+  if (algoNum === 1 || algoNum === 2 || algoNum === 3) {
+    if (publicParams?.n) {
+      bitLength = publicParams.n.length * 8;
+    }
+    algorithm = bitLength ? `RSA-${bitLength}` : 'RSA';
+  } else if (algoNum >= 18) {
+    // ECC algorithms: 18 = ecdh, 19 = ecdsa, 22 = eddsa/ed25519Legacy, 25 = x25519, 27 = ed25519
     curve = 'curve25519';
     algorithm = 'ECC (Curve25519)';
   }
@@ -107,10 +114,17 @@ export async function extractKeyInfo(key: openpgp.Key): Promise<KeyInfo> {
       let subBitLength: number | undefined;
       let subCurve: string | undefined;
 
-      if ('getBitSize' in subKeyPacket && typeof subKeyPacket.getBitSize === 'function') {
-        subBitLength = subKeyPacket.getBitSize();
-        subAlgorithm = `RSA-${subBitLength}`;
-      } else if ('oid' in subKeyPacket) {
+      const subAlgoNum = subKeyPacket.algorithm;
+      const subPublicParams = (subKeyPacket as { publicParams?: { n?: Uint8Array; oid?: unknown } }).publicParams;
+
+      // RSA algorithms: 1 = rsaEncryptSign, 2 = rsaEncrypt, 3 = rsaSign
+      if (subAlgoNum === 1 || subAlgoNum === 2 || subAlgoNum === 3) {
+        if (subPublicParams?.n) {
+          subBitLength = subPublicParams.n.length * 8;
+        }
+        subAlgorithm = subBitLength ? `RSA-${subBitLength}` : 'RSA';
+      } else if (subAlgoNum >= 18) {
+        // ECC algorithms
         subCurve = 'curve25519';
         subAlgorithm = 'ECC (Curve25519)';
       }
