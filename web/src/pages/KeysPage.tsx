@@ -192,17 +192,51 @@ export default function KeysPage() {
 
       {/* Keys List */}
       {keys.length === 0 ? (
-        <Card className="text-center py-2xl">
-          <p className="text-text-secondary mb-md">No keys in your keyring</p>
-          <div className="flex justify-center gap-sm">
-            <Button variant="secondary" onClick={() => setShowImportModal(true)}>
-              Import Key
-            </Button>
-            <Button onClick={() => setShowGenerateModal(true)}>
-              Generate Key
-            </Button>
-          </div>
-        </Card>
+        <div className="flex flex-col gap-lg max-w-2xl">
+          <Card>
+            <h2 className="text-lg font-semibold mb-md">Your Keyring is Empty</h2>
+            <p className="text-text-secondary mb-lg">
+              PGP keys enable end-to-end encryption for secure communication. Generate a new key pair
+              or import existing keys to start encrypting messages, signing files, and verifying authenticity.
+            </p>
+            <div className="flex gap-sm">
+              <Button onClick={() => setShowGenerateModal(true)}>
+                Generate Key
+              </Button>
+              <Button variant="secondary" onClick={() => setShowImportModal(true)}>
+                Import Key
+              </Button>
+            </div>
+          </Card>
+
+          <Card>
+            <h2 className="text-lg font-semibold mb-md">What You Can Do</h2>
+            <ul className="flex flex-col gap-sm text-text-secondary">
+              <li>
+                <strong className="text-text-primary">Encrypt</strong> — Send messages only the intended recipient can read.
+              </li>
+              <li>
+                <strong className="text-text-primary">Sign</strong> — Prove that a file or message truly came from you.
+              </li>
+              <li>
+                <strong className="text-text-primary">Verify</strong> — Confirm the authenticity of signed content from others.
+              </li>
+              <li>
+                <strong className="text-text-primary">Secure Email</strong> — Use PGP/MIME or inline encryption with any email client.
+              </li>
+            </ul>
+          </Card>
+
+          <Card>
+            <h2 className="text-lg font-semibold mb-md">How Keys Work</h2>
+            <p className="text-text-secondary">
+              Each key pair consists of a <strong className="text-text-primary">public key</strong> you share with others
+              and a <strong className="text-text-primary">private key</strong> you keep secret. Others encrypt messages
+              with your public key that only your private key can decrypt. Always back up your private key
+              and protect it with a strong passphrase.
+            </p>
+          </Card>
+        </div>
       ) : (
         <div className="border border-border">
           <table className="w-full border-collapse">
