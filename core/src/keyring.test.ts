@@ -735,3 +735,124 @@ describe('MemoryStorageAdapter', () => {
     expect(keys.length).toBe(0);
   });
 });
+
+describe('Encrypted Backup', () => {
+  let keyring: Keyring;
+  let storage: MemoryStorageAdapter;
+  const masterPassphrase = 'master-pass-123';
+  const backupPassphrase = 'backup-pass-456';
+
+  beforeEach(async () => {
+    storage = new MemoryStorageAdapter();
+    keyring = new Keyring(storage);
+    keyring.setWarningCallback(() => {}); // Suppress warnings in tests
+    await keyring.load();
+  });
+
+  it('should export encrypted backup', async () => {
+    const keyPair = await generateKeyPair({
+      algorithm: 'curve25519',
+      userIds: [{ name: 'Backup Test', email: 'backup@example.com' }],
+    });
+
+    await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+
+    const backup = await keyring.exportEncrypted(backupPassphrase);
+
+    // Verify backup format
+    const parsed = JSON.parse(backup);
+    expect(parsed.format).toBe('kript-encrypted-backup');
+    expect(parsed.version).toBe(1);
+    expect(parsed.data).toBeDefined();
+    // Data should be encrypted (starts with version indicator)
+    expect(parsed.data).toMatch(/^1:/);
+  });
+
+  it('should import encrypted backup', async () => {
+    const keyPair = await generateKeyPair({
+      algorithm: 'curve25519',
+      userIds: [{ name: 'Import Test', email: 'import@example.com' }],
+    });
+
+    await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+    const backup = await keyring.exportEncrypted(backupPassphrase);
+
+    // Create new keyring and import
+    const newStorage = new MemoryStorageAdapter();
+    const newKeyring = new Keyring(newStorage);
+    newKeyring.setWarningCallback(() => {});
+    await newKeyring.load();
+
+    const imported = await newKeyring.importEncryptedBackup(backup, backupPassphrase);
+
+    expect(imported).toBe(1);
+    const keys = await newKeyring.getAllKeys();
+    expect(keys.length).toBe(1);
+    expect(keys[0].keyInfo.userIds[0]?.email).toBe('import@example.com');
+  });
+
+  it('should fail to import with wrong passphrase', async () => {
+    const keyPair = await generateKeyPair({
+      algorithm: 'curve25519',
+      userIds: [{ name: 'Wrong Pass', email: 'wrong@example.com' }],
+    });
+
+    await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+    const backup = await keyring.exportEncrypted(backupPassphrase);
+
+    const newStorage = new MemoryStorageAdapter();
+    const newKeyring = new Keyring(newStorage);
+    await newKeyring.load();
+
+    await expect(
+      newKeyring.importEncryptedBackup(backup, 'wrong-passphrase')
+    ).rejects.toThrow(/passphrase/i);
+  });
+
+  it('should reject short backup passphrase', async () => {
+    await expect(keyring.exportEncrypted('short')).rejects.toThrow(
+      /at least 8 characters/
+    );
+  });
+
+  it('should reject invalid backup format', async () => {
+    const newKeyring = new Keyring(new MemoryStorageAdapter());
+    await newKeyring.load();
+
+    await expect(
+      newKeyring.importEncryptedBackup('invalid-json', backupPassphrase)
+    ).rejects.toThrow(/Invalid backup format/);
+
+    await expect(
+      newKeyring.importEncryptedBackup('{"format": "wrong"}', backupPassphrase)
+    ).rejects.toThrow(/Expected encrypted backup/);
+  });
+
+  it('should work with encrypted keyring', async () => {
+    await keyring.setMasterPassphrase(masterPassphrase);
+
+    const keyPair = await generateKeyPair({
+      algorithm: 'curve25519',
+      userIds: [{ name: 'Encrypted Keyring', email: 'encrypted@example.com' }],
+    });
+
+    await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+
+    // Export should work
+    const backup = await keyring.exportEncrypted(backupPassphrase);
+
+    // Import into new keyring
+    const newStorage = new MemoryStorageAdapter();
+    const newKeyring = new Keyring(newStorage);
+    newKeyring.setWarningCallback(() => {});
+    await newKeyring.load();
+    await newKeyring.setMasterPassphrase('new-master-pass');
+
+    const imported = await newKeyring.importEncryptedBackup(backup, backupPassphrase);
+    expect(imported).toBe(1);
+
+    // Verify the key was imported and re-encrypted with the new keyring's passphrase
+    const keys = await newKeyring.getAllKeys();
+    expect(keys[0].privateKey).toBeDefined();
+  });
+});

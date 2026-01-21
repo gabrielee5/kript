@@ -22,6 +22,8 @@ import {
   isPlaintextPrivateKey,
   generateVerificationToken,
   verifyWithToken,
+  encryptData,
+  decryptData,
 } from './crypto.js';
 
 const KEYRING_STORAGE_KEY = 'kript_keyring';
@@ -711,10 +713,24 @@ export class Keyring {
   /**
    * Export all keys with decrypted private keys (for unencrypted backup)
    *
+   * WARNING: This exports private keys in PLAINTEXT. Use exportEncrypted() for secure backups.
+   *
    * @throws PGPError if keyring is locked
+   * @deprecated Use exportEncrypted() for secure backup exports
    */
   async exportAllDecrypted(): Promise<string> {
     await this.ensureLoaded();
+
+    // Emit warning about plaintext export
+    if (this.warningCallback) {
+      this.warningCallback(
+        'Exporting private keys in PLAINTEXT. This is insecure. Use exportEncrypted() for secure backups.'
+      );
+    } else {
+      console.warn(
+        '[Kript Keyring Security Warning] Exporting private keys in PLAINTEXT. Use exportEncrypted() for secure backups.'
+      );
+    }
 
     const exportEntries: Record<string, KeyringEntry> = {};
 
@@ -735,6 +751,134 @@ export class Keyring {
     }
 
     return JSON.stringify(exportEntries);
+  }
+
+  /**
+   * Export all keys with encryption for secure backup
+   *
+   * The backup is encrypted with the provided passphrase using AES-256-GCM.
+   * The backup can be imported using importEncryptedBackup().
+   *
+   * @param backupPassphrase Passphrase to encrypt the backup (can be different from master passphrase)
+   * @returns Encrypted backup string that can be safely stored
+   */
+  async exportEncrypted(backupPassphrase: string): Promise<string> {
+    await this.ensureLoaded();
+
+    if (!backupPassphrase || backupPassphrase.length < 8) {
+      throw new PGPError(
+        ErrorCode.INVALID_PASSPHRASE,
+        'Backup passphrase must be at least 8 characters'
+      );
+    }
+
+    // Get all entries with decrypted private keys if we have encryption enabled
+    const exportEntries: Record<string, KeyringEntry> = {};
+
+    for (const [fingerprint, entry] of this.entries) {
+      if (entry.privateKey && isEncryptedPrivateKey(entry.privateKey)) {
+        this.ensureUnlocked();
+        const decryptedKey = await decryptPrivateKey(
+          entry.privateKey,
+          this.masterPassphrase!
+        );
+        exportEntries[fingerprint] = {
+          ...entry,
+          privateKey: decryptedKey,
+        };
+      } else {
+        exportEntries[fingerprint] = entry;
+      }
+    }
+
+    // Create backup data
+    const backupData = {
+      version: 1,
+      encrypted: true,
+      exportedAt: new Date().toISOString(),
+      keyCount: Object.keys(exportEntries).length,
+      entries: exportEntries,
+    };
+
+    // Encrypt the backup
+    const plaintext = JSON.stringify(backupData);
+    const encrypted = await encryptData(plaintext, backupPassphrase);
+
+    // Serialize encrypted data to compact format: version:salt:iv:ciphertext
+    const encryptedString = `${encrypted.version}:${encrypted.salt}:${encrypted.iv}:${encrypted.ciphertext}`;
+
+    // Return as a recognizable format
+    return JSON.stringify({
+      format: 'kript-encrypted-backup',
+      version: 1,
+      data: encryptedString,
+    });
+  }
+
+  /**
+   * Import keys from an encrypted backup
+   *
+   * @param encryptedBackup The encrypted backup string from exportEncrypted()
+   * @param backupPassphrase The passphrase used to encrypt the backup
+   * @returns Number of keys imported
+   */
+  async importEncryptedBackup(encryptedBackup: string, backupPassphrase: string): Promise<number> {
+    // Parse the backup wrapper
+    let wrapper: { format: string; version: number; data: string };
+    try {
+      wrapper = JSON.parse(encryptedBackup);
+    } catch {
+      throw new PGPError(ErrorCode.INVALID_KEY, 'Invalid backup format');
+    }
+
+    if (wrapper.format !== 'kript-encrypted-backup') {
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        'Invalid backup format. Expected encrypted backup from exportEncrypted()'
+      );
+    }
+
+    // Parse the encrypted data string format: version:salt:iv:ciphertext
+    const parts = wrapper.data.split(':');
+    if (parts.length !== 4) {
+      throw new PGPError(ErrorCode.INVALID_KEY, 'Invalid encrypted backup data format');
+    }
+
+    const [versionStr, salt, iv, ciphertext] = parts;
+    const encryptedData = {
+      version: parseInt(versionStr!, 10),
+      salt: salt!,
+      iv: iv!,
+      ciphertext: ciphertext!,
+    };
+
+    // Decrypt the backup
+    let decrypted: string;
+    try {
+      decrypted = await decryptData(encryptedData, backupPassphrase);
+    } catch {
+      throw new PGPError(ErrorCode.INVALID_PASSPHRASE, 'Incorrect backup passphrase');
+    }
+
+    // Parse the decrypted data
+    const backupData = JSON.parse(decrypted) as {
+      version: number;
+      encrypted: boolean;
+      entries: Record<string, KeyringEntry>;
+    };
+
+    // Import the keys
+    let imported = 0;
+    for (const entry of Object.values(backupData.entries)) {
+      try {
+        await this.addKey(entry.publicKey, entry.privateKey);
+        imported++;
+      } catch {
+        // Skip invalid keys
+      }
+    }
+
+    return imported;
   }
 
   /**
