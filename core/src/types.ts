@@ -165,6 +165,37 @@ export interface KeyringEntry {
   lastUsed?: Date;
 }
 
+/** Encrypted keyring storage format */
+export interface EncryptedKeyringData {
+  /** Indicates the keyring uses encryption */
+  encrypted: true;
+  /** Encryption format version for future migrations */
+  version: number;
+  /** Token used to verify passphrase without storing it */
+  verificationToken: string;
+  /** The keyring entries (private keys are encrypted) */
+  entries: Record<string, KeyringEntry>;
+}
+
+/** Unencrypted keyring storage format (legacy) */
+export interface UnencryptedKeyringData {
+  /** Indicates the keyring does not use encryption */
+  encrypted?: false;
+  /** The keyring entries (private keys are plaintext) */
+  entries?: Record<string, KeyringEntry>;
+}
+
+/** Combined keyring data type */
+export type KeyringData = EncryptedKeyringData | UnencryptedKeyringData | Record<string, KeyringEntry>;
+
+/** Options for initializing an encrypted keyring */
+export interface KeyringOptions {
+  /** Master passphrase for encrypting private keys */
+  passphrase?: string;
+  /** If true, require encryption for all private keys */
+  requireEncryption?: boolean;
+}
+
 /** Progress callback for long operations */
 export type ProgressCallback = (progress: {
   operation: string;
@@ -187,6 +218,8 @@ export enum ErrorCode {
   VERIFICATION_FAILED = 'VERIFICATION_FAILED',
   STORAGE_ERROR = 'STORAGE_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  KEYRING_LOCKED = 'KEYRING_LOCKED',
+  KEYRING_NOT_ENCRYPTED = 'KEYRING_NOT_ENCRYPTED',
 }
 
 /** Custom error class for PGP operations */

@@ -1,5 +1,8 @@
 /**
  * Keyring management for Kript
+ *
+ * Provides secure storage for PGP keys with AES-256-GCM encryption
+ * for private keys using PBKDF2 key derivation.
  */
 
 import {
@@ -7,21 +10,231 @@ import {
   StorageAdapter,
   PGPError,
   ErrorCode,
+  KeyringOptions,
+  EncryptedKeyringData,
+  KeyringData,
 } from './types.js';
 import { readKey, extractKeyInfo } from './keys.js';
+import {
+  encryptPrivateKey,
+  decryptPrivateKey,
+  isEncryptedPrivateKey,
+  isPlaintextPrivateKey,
+  generateVerificationToken,
+  verifyWithToken,
+} from './crypto.js';
 
 const KEYRING_STORAGE_KEY = 'kript_keyring';
+const KEYRING_FORMAT_VERSION = 1;
 
 /**
- * Keyring class for managing PGP keys
+ * Warning callback type for backward compatibility warnings
+ */
+export type KeyringWarningCallback = (message: string) => void;
+
+/**
+ * Keyring class for managing PGP keys with encrypted private key storage
+ *
+ * Security features:
+ * - Private keys are encrypted with AES-256-GCM before storage
+ * - Key derivation uses PBKDF2 with 120,000 iterations
+ * - Each encryption uses a unique salt and IV
+ * - Lock/unlock mechanism to protect private keys
+ *
+ * Usage:
+ * ```typescript
+ * const keyring = new Keyring(storage);
+ * await keyring.load();
+ *
+ * // For encrypted keyrings, unlock before operations
+ * await keyring.unlock('my-master-passphrase');
+ *
+ * // Add keys, perform operations...
+ * await keyring.addKey(publicKey, privateKey);
+ *
+ * // Lock when done to clear passphrase from memory
+ * keyring.lock();
+ * ```
  */
 export class Keyring {
   private entries: Map<string, KeyringEntry> = new Map();
   private storage: StorageAdapter;
   private loaded = false;
+  private masterPassphrase: string | null = null;
+  private isEncrypted = false;
+  private verificationToken: string | null = null;
+  private warningCallback: KeyringWarningCallback | null = null;
+  private hasUnencryptedWarning = false;
 
-  constructor(storage: StorageAdapter) {
+  constructor(storage: StorageAdapter, options?: KeyringOptions) {
     this.storage = storage;
+    if (options?.passphrase) {
+      this.masterPassphrase = options.passphrase;
+    }
+  }
+
+  /**
+   * Set a callback for warnings (e.g., loading unencrypted keyring)
+   */
+  setWarningCallback(callback: KeyringWarningCallback | null): void {
+    this.warningCallback = callback;
+  }
+
+  /**
+   * Emit a warning message
+   */
+  private warn(message: string): void {
+    if (this.warningCallback) {
+      this.warningCallback(message);
+    } else {
+      console.warn(`[Kript Keyring Warning] ${message}`);
+    }
+  }
+
+  /**
+   * Check if the keyring is currently locked
+   * A locked keyring cannot access private keys
+   */
+  isLocked(): boolean {
+    // If keyring is encrypted and no passphrase is set, it's locked
+    if (this.isEncrypted && !this.masterPassphrase) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if the keyring has encryption enabled
+   */
+  hasEncryption(): boolean {
+    return this.isEncrypted;
+  }
+
+  /**
+   * Lock the keyring, clearing the master passphrase from memory
+   * After locking, private keys cannot be accessed until unlock() is called
+   */
+  lock(): void {
+    // Clear passphrase from memory (best effort)
+    if (this.masterPassphrase) {
+      // Overwrite the string reference
+      this.masterPassphrase = null;
+    }
+  }
+
+  /**
+   * Unlock the keyring with the master passphrase
+   * Required before performing operations that need private key access
+   *
+   * @param passphrase - The master passphrase
+   * @throws PGPError if passphrase is incorrect
+   */
+  async unlock(passphrase: string): Promise<void> {
+    if (!passphrase || passphrase.length === 0) {
+      throw new PGPError(
+        ErrorCode.INVALID_PASSPHRASE,
+        'Passphrase is required to unlock the keyring'
+      );
+    }
+
+    // If we have a verification token, verify the passphrase
+    if (this.verificationToken) {
+      const isValid = await verifyWithToken(this.verificationToken, passphrase);
+      if (!isValid) {
+        throw new PGPError(
+          ErrorCode.INVALID_PASSPHRASE,
+          'Incorrect passphrase'
+        );
+      }
+    }
+
+    this.masterPassphrase = passphrase;
+  }
+
+  /**
+   * Set the master passphrase for encryption
+   * This will enable encryption for the keyring if not already enabled
+   *
+   * @param passphrase - The master passphrase for encrypting private keys
+   */
+  async setMasterPassphrase(passphrase: string): Promise<void> {
+    if (!passphrase || passphrase.length === 0) {
+      throw new PGPError(
+        ErrorCode.INVALID_PASSPHRASE,
+        'Passphrase cannot be empty'
+      );
+    }
+
+    const previousPassphrase = this.masterPassphrase;
+    this.masterPassphrase = passphrase;
+
+    // Generate a new verification token
+    this.verificationToken = await generateVerificationToken(passphrase);
+
+    // If we have existing entries with encrypted private keys using old passphrase,
+    // re-encrypt them with the new passphrase
+    if (this.isEncrypted && previousPassphrase && previousPassphrase !== passphrase) {
+      for (const [fingerprint, entry] of this.entries) {
+        if (entry.privateKey && isEncryptedPrivateKey(entry.privateKey)) {
+          try {
+            // Decrypt with old passphrase
+            const decryptedKey = await decryptPrivateKey(entry.privateKey, previousPassphrase);
+            // Re-encrypt with new passphrase
+            entry.privateKey = await encryptPrivateKey(decryptedKey, passphrase);
+            this.entries.set(fingerprint, entry);
+          } catch (error) {
+            throw new PGPError(
+              ErrorCode.DECRYPTION_FAILED,
+              `Failed to re-encrypt private key for ${fingerprint}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              error instanceof Error ? error : undefined
+            );
+          }
+        }
+      }
+    }
+
+    // If we have plaintext private keys, encrypt them now
+    for (const [fingerprint, entry] of this.entries) {
+      if (entry.privateKey && isPlaintextPrivateKey(entry.privateKey)) {
+        entry.privateKey = await encryptPrivateKey(entry.privateKey, passphrase);
+        this.entries.set(fingerprint, entry);
+      }
+    }
+
+    this.isEncrypted = true;
+    await this.save();
+  }
+
+  /**
+   * Change the master passphrase
+   *
+   * @param currentPassphrase - The current passphrase (for verification)
+   * @param newPassphrase - The new passphrase
+   */
+  async changePassphrase(currentPassphrase: string, newPassphrase: string): Promise<void> {
+    if (!this.isEncrypted) {
+      throw new PGPError(
+        ErrorCode.KEYRING_NOT_ENCRYPTED,
+        'Keyring is not encrypted. Use setMasterPassphrase() to enable encryption.'
+      );
+    }
+
+    // Verify current passphrase
+    if (this.verificationToken) {
+      const isValid = await verifyWithToken(this.verificationToken, currentPassphrase);
+      if (!isValid) {
+        throw new PGPError(
+          ErrorCode.INVALID_PASSPHRASE,
+          'Current passphrase is incorrect'
+        );
+      }
+    }
+
+    // Temporarily set the current passphrase for re-encryption
+    this.masterPassphrase = currentPassphrase;
+
+    // Now set the new passphrase (this will re-encrypt all private keys)
+    await this.setMasterPassphrase(newPassphrase);
   }
 
   /**
@@ -31,29 +244,26 @@ export class Keyring {
     try {
       const data = await this.storage.load(KEYRING_STORAGE_KEY);
       if (data) {
-        const parsed = JSON.parse(data) as Record<string, KeyringEntry>;
-        this.entries = new Map(
-          Object.entries(parsed).map(([key, entry]) => [
-            key,
-            {
-              ...entry,
-              addedAt: new Date(entry.addedAt),
-              lastUsed: entry.lastUsed ? new Date(entry.lastUsed) : undefined,
-              keyInfo: {
-                ...entry.keyInfo,
-                creationTime: new Date(entry.keyInfo.creationTime),
-                expirationTime: entry.keyInfo.expirationTime
-                  ? new Date(entry.keyInfo.expirationTime)
-                  : undefined,
-                subkeys: entry.keyInfo.subkeys.map((sk) => ({
-                  ...sk,
-                  creationTime: new Date(sk.creationTime),
-                  expirationTime: sk.expirationTime ? new Date(sk.expirationTime) : undefined,
-                })),
-              },
-            },
-          ])
-        );
+        const parsed = JSON.parse(data) as KeyringData;
+
+        // Check if this is the new encrypted format
+        if (this.isEncryptedKeyringData(parsed)) {
+          this.isEncrypted = true;
+          this.verificationToken = parsed.verificationToken;
+          this.loadEntries(parsed.entries);
+        } else if (this.isUnencryptedKeyringData(parsed)) {
+          // New format but unencrypted
+          this.isEncrypted = false;
+          if (parsed.entries) {
+            this.loadEntries(parsed.entries);
+            this.checkForPlaintextPrivateKeys();
+          }
+        } else {
+          // Legacy format: direct Record<string, KeyringEntry>
+          this.isEncrypted = false;
+          this.loadEntries(parsed as Record<string, KeyringEntry>);
+          this.checkForPlaintextPrivateKeys();
+        }
       }
       this.loaded = true;
     } catch (error) {
@@ -66,15 +276,103 @@ export class Keyring {
   }
 
   /**
+   * Type guard for encrypted keyring data
+   */
+  private isEncryptedKeyringData(data: KeyringData): data is EncryptedKeyringData {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'encrypted' in data &&
+      data.encrypted === true &&
+      'verificationToken' in data &&
+      'entries' in data
+    );
+  }
+
+  /**
+   * Type guard for unencrypted keyring data (new format)
+   */
+  private isUnencryptedKeyringData(data: KeyringData): data is { encrypted?: false; entries?: Record<string, KeyringEntry> } {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'entries' in data &&
+      (!('encrypted' in data) || data.encrypted === false)
+    );
+  }
+
+  /**
+   * Load entries from parsed data, reconstructing Date objects
+   */
+  private loadEntries(entries: Record<string, KeyringEntry>): void {
+    this.entries = new Map(
+      Object.entries(entries).map(([key, entry]) => [
+        key,
+        {
+          ...entry,
+          addedAt: new Date(entry.addedAt),
+          lastUsed: entry.lastUsed ? new Date(entry.lastUsed) : undefined,
+          keyInfo: {
+            ...entry.keyInfo,
+            creationTime: new Date(entry.keyInfo.creationTime),
+            expirationTime: entry.keyInfo.expirationTime
+              ? new Date(entry.keyInfo.expirationTime)
+              : undefined,
+            subkeys: entry.keyInfo.subkeys.map((sk) => ({
+              ...sk,
+              creationTime: new Date(sk.creationTime),
+              expirationTime: sk.expirationTime ? new Date(sk.expirationTime) : undefined,
+            })),
+          },
+        },
+      ])
+    );
+  }
+
+  /**
+   * Check for plaintext private keys and emit warning
+   */
+  private checkForPlaintextPrivateKeys(): void {
+    for (const entry of this.entries.values()) {
+      if (entry.privateKey && isPlaintextPrivateKey(entry.privateKey)) {
+        if (!this.hasUnencryptedWarning) {
+          this.hasUnencryptedWarning = true;
+          this.warn(
+            'SECURITY WARNING: Keyring contains unencrypted private keys. ' +
+            'Call setMasterPassphrase() to enable encryption and protect your private keys.'
+          );
+        }
+        return;
+      }
+    }
+  }
+
+  /**
    * Save keyring to storage
    */
   async save(): Promise<void> {
     try {
-      const data: Record<string, KeyringEntry> = {};
+      let dataToSave: EncryptedKeyringData | { entries: Record<string, KeyringEntry> };
+
+      const entriesObject: Record<string, KeyringEntry> = {};
       for (const [key, entry] of this.entries) {
-        data[key] = entry;
+        entriesObject[key] = entry;
       }
-      await this.storage.save(KEYRING_STORAGE_KEY, JSON.stringify(data));
+
+      if (this.isEncrypted && this.verificationToken) {
+        dataToSave = {
+          encrypted: true,
+          version: KEYRING_FORMAT_VERSION,
+          verificationToken: this.verificationToken,
+          entries: entriesObject,
+        };
+      } else {
+        dataToSave = {
+          entries: entriesObject,
+        };
+      }
+
+      await this.storage.save(KEYRING_STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (error) {
       throw new PGPError(
         ErrorCode.STORAGE_ERROR,
@@ -94,20 +392,52 @@ export class Keyring {
   }
 
   /**
+   * Ensure keyring is unlocked for operations requiring private key access
+   */
+  private ensureUnlocked(): void {
+    if (this.isEncrypted && !this.masterPassphrase) {
+      throw new PGPError(
+        ErrorCode.KEYRING_LOCKED,
+        'Keyring is locked. Call unlock() with the master passphrase before accessing private keys.'
+      );
+    }
+  }
+
+  /**
    * Add a key to the keyring
+   *
+   * @param publicKey - The armored public key
+   * @param privateKey - Optional armored private key (will be encrypted if passphrase is set)
    */
   async addKey(publicKey: string, privateKey?: string): Promise<KeyringEntry> {
     await this.ensureLoaded();
+
+    // If adding a private key and keyring is encrypted, ensure we're unlocked
+    if (privateKey && this.isEncrypted) {
+      this.ensureUnlocked();
+    }
 
     try {
       const key = await readKey(privateKey || publicKey);
       const keyInfo = await extractKeyInfo(key);
 
+      // Encrypt private key if we have a passphrase
+      let storedPrivateKey = privateKey;
+      if (privateKey && this.masterPassphrase) {
+        storedPrivateKey = await encryptPrivateKey(privateKey, this.masterPassphrase);
+      } else if (privateKey && !this.masterPassphrase && !this.isEncrypted) {
+        // Warn about storing unencrypted private key
+        this.warn(
+          `Adding private key without encryption. ` +
+          `Call setMasterPassphrase() to enable encryption.`
+        );
+      }
+
       const entry: KeyringEntry = {
         keyId: keyInfo.keyId,
         fingerprint: keyInfo.fingerprint,
         publicKey,
-        privateKey,
+        privateKey: storedPrivateKey,
         keyInfo,
         addedAt: new Date(),
       };
@@ -130,6 +460,7 @@ export class Keyring {
 
   /**
    * Get a key by fingerprint or key ID
+   * Note: If the keyring is encrypted and locked, private keys will not be decrypted
    */
   async getKey(identifier: string): Promise<KeyringEntry | null> {
     await this.ensureLoaded();
@@ -149,6 +480,51 @@ export class Keyring {
     }
 
     return null;
+  }
+
+  /**
+   * Get a key with decrypted private key
+   *
+   * @param identifier - Fingerprint or key ID
+   * @returns Entry with decrypted private key, or null if not found
+   * @throws PGPError if keyring is locked or decryption fails
+   */
+  async getKeyDecrypted(identifier: string): Promise<KeyringEntry | null> {
+    const entry = await this.getKey(identifier);
+    if (!entry) {
+      return null;
+    }
+
+    if (!entry.privateKey) {
+      return entry;
+    }
+
+    // Check if private key is encrypted
+    if (isEncryptedPrivateKey(entry.privateKey)) {
+      this.ensureUnlocked();
+
+      try {
+        const decryptedPrivateKey = await decryptPrivateKey(
+          entry.privateKey,
+          this.masterPassphrase!
+        );
+
+        // Return a copy with decrypted private key
+        return {
+          ...entry,
+          privateKey: decryptedPrivateKey,
+        };
+      } catch (error) {
+        throw new PGPError(
+          ErrorCode.DECRYPTION_FAILED,
+          `Failed to decrypt private key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error : undefined
+        );
+      }
+    }
+
+    // Private key is not encrypted (legacy or unencrypted keyring)
+    return entry;
   }
 
   /**
@@ -173,6 +549,50 @@ export class Keyring {
   async getPrivateKeys(): Promise<KeyringEntry[]> {
     await this.ensureLoaded();
     return Array.from(this.entries.values()).filter((entry) => entry.privateKey);
+  }
+
+  /**
+   * Get private keys with decrypted private key data
+   *
+   * @throws PGPError if keyring is locked
+   */
+  async getPrivateKeysDecrypted(): Promise<KeyringEntry[]> {
+    await this.ensureLoaded();
+
+    const privateEntries = Array.from(this.entries.values()).filter(
+      (entry) => entry.privateKey
+    );
+
+    if (privateEntries.length === 0) {
+      return [];
+    }
+
+    // Check if any private keys are encrypted
+    const hasEncryptedKeys = privateEntries.some(
+      (entry) => entry.privateKey && isEncryptedPrivateKey(entry.privateKey)
+    );
+
+    if (hasEncryptedKeys) {
+      this.ensureUnlocked();
+    }
+
+    const decrypted: KeyringEntry[] = [];
+    for (const entry of privateEntries) {
+      if (entry.privateKey && isEncryptedPrivateKey(entry.privateKey)) {
+        const decryptedKey = await decryptPrivateKey(
+          entry.privateKey,
+          this.masterPassphrase!
+        );
+        decrypted.push({
+          ...entry,
+          privateKey: decryptedKey,
+        });
+      } else {
+        decrypted.push(entry);
+      }
+    }
+
+    return decrypted;
   }
 
   /**
@@ -245,6 +665,8 @@ export class Keyring {
     privateKeys: number;
     expiredKeys: number;
     revokedKeys: number;
+    encrypted: boolean;
+    locked: boolean;
   }> {
     await this.ensureLoaded();
 
@@ -272,15 +694,47 @@ export class Keyring {
       privateKeys,
       expiredKeys,
       revokedKeys,
+      encrypted: this.isEncrypted,
+      locked: this.isLocked(),
     };
   }
 
   /**
    * Export all keys for backup
+   * WARNING: Exports encrypted private keys as-is (still encrypted)
    */
   async exportAll(): Promise<string> {
     await this.ensureLoaded();
     return JSON.stringify(Object.fromEntries(this.entries));
+  }
+
+  /**
+   * Export all keys with decrypted private keys (for unencrypted backup)
+   *
+   * @throws PGPError if keyring is locked
+   */
+  async exportAllDecrypted(): Promise<string> {
+    await this.ensureLoaded();
+
+    const exportEntries: Record<string, KeyringEntry> = {};
+
+    for (const [fingerprint, entry] of this.entries) {
+      if (entry.privateKey && isEncryptedPrivateKey(entry.privateKey)) {
+        this.ensureUnlocked();
+        const decryptedKey = await decryptPrivateKey(
+          entry.privateKey,
+          this.masterPassphrase!
+        );
+        exportEntries[fingerprint] = {
+          ...entry,
+          privateKey: decryptedKey,
+        };
+      } else {
+        exportEntries[fingerprint] = entry;
+      }
+    }
+
+    return JSON.stringify(exportEntries);
   }
 
   /**

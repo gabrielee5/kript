@@ -76,7 +76,7 @@ describe('Fingerprint Formatting', () => {
 
   it('should get long key ID (last 16 chars)', () => {
     const fingerprint = 'ABCD1234EFGH5678IJKL9012MNOP3456';
-    expect(getLongKeyId(fingerprint)).toBe('L9012MNOP3456');
+    expect(getLongKeyId(fingerprint)).toBe('IJKL9012MNOP3456');
   });
 });
 

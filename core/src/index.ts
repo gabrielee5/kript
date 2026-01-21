@@ -50,7 +50,26 @@ export {
   MemoryStorageAdapter,
   LocalStorageAdapter,
   IndexedDBStorageAdapter,
+  type KeyringWarningCallback,
 } from './keyring.js';
+
+// Crypto utilities for keyring encryption
+export {
+  encryptData,
+  decryptData,
+  encryptPrivateKey as encryptPrivateKeyData,
+  decryptPrivateKey as decryptPrivateKeyData,
+  deriveKey,
+  generateRandomBytes,
+  isEncryptedPrivateKey,
+  isPlaintextPrivateKey,
+  generateVerificationToken,
+  verifyWithToken,
+  uint8ArrayToBase64,
+  base64ToUint8Array,
+  CRYPTO_CONFIG,
+  type EncryptedData,
+} from './crypto.js';
 
 // Version
 export const VERSION = '1.0.0';
