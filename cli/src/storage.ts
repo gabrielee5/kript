@@ -3,11 +3,52 @@
  */
 
 import { promises as fs } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve, relative } from 'node:path';
 import { homedir } from 'node:os';
 import type { StorageAdapter } from '@kript/core';
 
 const CONFIG_DIR = join(homedir(), '.kript');
+
+/**
+ * Validates a storage key to prevent path traversal attacks.
+ * Only allows alphanumeric characters, hyphens, and underscores.
+ * @throws Error if key contains invalid characters
+ */
+export function validateStorageKey(key: string): void {
+  if (!key || typeof key !== 'string') {
+    throw new Error('Storage key must be a non-empty string');
+  }
+  // Only allow alphanumeric, hyphens, underscores (no dots, slashes, etc.)
+  const validKeyPattern = /^[a-zA-Z0-9_-]+$/;
+  if (!validKeyPattern.test(key)) {
+    throw new Error(
+      `Invalid storage key: "${key}". Only alphanumeric characters, hyphens, and underscores are allowed.`
+    );
+  }
+  // Additional length check to prevent filesystem issues
+  if (key.length > 255) {
+    throw new Error('Storage key exceeds maximum length of 255 characters');
+  }
+}
+
+/**
+ * Constructs a safe file path within the config directory.
+ * Validates that the resulting path is within the allowed directory.
+ * @throws Error if the path would escape the config directory
+ */
+function getSafeFilePath(baseDir: string, key: string): string {
+  validateStorageKey(key);
+  const filePath = resolve(baseDir, `${key}.json`);
+  const resolvedBase = resolve(baseDir);
+
+  // Verify the path is within the base directory
+  const relativePath = relative(resolvedBase, filePath);
+  if (relativePath.startsWith('..') || resolve(resolvedBase, relativePath) !== filePath) {
+    throw new Error('Path traversal detected: key would access files outside config directory');
+  }
+
+  return filePath;
+}
 
 /**
  * Ensure the config directory exists
@@ -32,14 +73,14 @@ export class FileStorageAdapter implements StorageAdapter {
 
   async save(key: string, value: string): Promise<void> {
     await ensureConfigDir();
-    const filePath = join(this.dir, `${key}.json`);
+    const filePath = getSafeFilePath(this.dir, key);
     await fs.writeFile(filePath, value, 'utf-8');
   }
 
   async load(key: string): Promise<string | null> {
     await ensureConfigDir();
-    const filePath = join(this.dir, `${key}.json`);
     try {
+      const filePath = getSafeFilePath(this.dir, key);
       return await fs.readFile(filePath, 'utf-8');
     } catch {
       return null;
@@ -47,8 +88,8 @@ export class FileStorageAdapter implements StorageAdapter {
   }
 
   async delete(key: string): Promise<boolean> {
-    const filePath = join(this.dir, `${key}.json`);
     try {
+      const filePath = getSafeFilePath(this.dir, key);
       await fs.unlink(filePath);
       return true;
     } catch {
