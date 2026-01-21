@@ -123,6 +123,7 @@ describe('Encryption', () => {
         message: encrypted.data,
         decryptionKey: bobKeyPair.privateKey,
         passphrase: 'bob-pass',
+        expectBinary: true, // Tell decrypt to return Uint8Array since we encrypted binary data
       });
 
       expect(decrypted.data).toEqual(binaryData);

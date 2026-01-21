@@ -77,6 +77,7 @@ export interface DecryptOptions {
   decryptionKey: string; // armored private key
   passphrase?: string;
   verificationKeys?: string[]; // armored public keys for signature verification
+  expectBinary?: boolean; // If true, return Uint8Array. If undefined, auto-detect from message type.
 }
 
 /** Options for signing */
