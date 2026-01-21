@@ -62,3 +62,6 @@ web/.vite/
 
 # TypeScript cache
 *.tsbuildinfo
+
+# other
+SECURITY_REPORT.md
