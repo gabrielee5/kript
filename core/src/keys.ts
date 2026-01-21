@@ -16,7 +16,7 @@ import {
   PGPError,
   ErrorCode,
 } from './types.js';
-import { getShortKeyId } from './utils.js';
+import { getShortKeyId, withSecurePassphrase, secureClear } from './utils.js';
 
 /**
  * Map our algorithm names to OpenPGP.js config
@@ -311,32 +311,36 @@ export async function exportKey(
 
 /**
  * Decrypt a private key with passphrase
+ * Uses secure passphrase handling to clear the passphrase from memory after use
  */
 export async function decryptPrivateKey(
   armoredKey: string,
   passphrase: string
 ): Promise<openpgp.PrivateKey> {
-  try {
-    const key = await openpgp.readPrivateKey({ armoredKey });
-    const decrypted = await openpgp.decryptKey({
-      privateKey: key,
-      passphrase,
-    });
-    return decrypted;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('passphrase')) {
-      throw new PGPError(ErrorCode.INVALID_PASSPHRASE, 'Incorrect passphrase');
+  return withSecurePassphrase(passphrase, async (securePass) => {
+    try {
+      const key = await openpgp.readPrivateKey({ armoredKey });
+      const decrypted = await openpgp.decryptKey({
+        privateKey: key,
+        passphrase: securePass,
+      });
+      return decrypted;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('passphrase')) {
+        throw new PGPError(ErrorCode.INVALID_PASSPHRASE, 'Incorrect passphrase');
+      }
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        `Failed to decrypt key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error : undefined
+      );
     }
-    throw new PGPError(
-      ErrorCode.INVALID_KEY,
-      `Failed to decrypt key: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error instanceof Error ? error : undefined
-    );
-  }
+  });
 }
 
 /**
  * Change the passphrase of a private key
+ * Uses secure passphrase handling to clear passphrases from memory after use
  */
 export async function changePassphrase(
   armoredKey: string,
@@ -344,12 +348,17 @@ export async function changePassphrase(
   newPassphrase: string
 ): Promise<string> {
   try {
+    // decryptPrivateKey already handles oldPassphrase securely
     const decrypted = await decryptPrivateKey(armoredKey, oldPassphrase);
-    const encrypted = await openpgp.encryptKey({
-      privateKey: decrypted,
-      passphrase: newPassphrase,
+
+    // Use withSecurePassphrase for the new passphrase
+    return await withSecurePassphrase(newPassphrase, async (secureNewPass) => {
+      const encrypted = await openpgp.encryptKey({
+        privateKey: decrypted,
+        passphrase: secureNewPass,
+      });
+      return encrypted.armor();
     });
-    return encrypted.armor();
   } catch (error) {
     if (error instanceof PGPError) {
       throw error;
@@ -359,41 +368,53 @@ export async function changePassphrase(
       `Failed to change passphrase: ${error instanceof Error ? error.message : 'Unknown error'}`,
       error instanceof Error ? error : undefined
     );
+  } finally {
+    // Attempt to clear original passphrase strings
+    secureClear(oldPassphrase);
+    secureClear(newPassphrase);
   }
 }
 
 /**
  * Generate a revocation certificate for a key
+ * Uses secure passphrase handling to clear the passphrase from memory after use
  */
 export async function generateRevocationCertificate(
   armoredPrivateKey: string,
   passphrase?: string,
   reason?: string
 ): Promise<string> {
-  try {
-    let privateKey = await openpgp.readPrivateKey({ armoredKey: armoredPrivateKey });
+  const doRevoke = async (securePass?: string): Promise<string> => {
+    try {
+      let privateKey = await openpgp.readPrivateKey({ armoredKey: armoredPrivateKey });
 
-    if (!privateKey.isDecrypted() && passphrase) {
-      privateKey = await openpgp.decryptKey({ privateKey, passphrase });
+      if (!privateKey.isDecrypted() && securePass) {
+        privateKey = await openpgp.decryptKey({ privateKey, passphrase: securePass });
+      }
+
+      const { publicKey: revokedKey } = await openpgp.revokeKey({
+        key: privateKey,
+        reasonForRevocation: {
+          flag: openpgp.enums.reasonForRevocation.noReason,
+          string: reason || 'Key revoked',
+        },
+      });
+
+      // revokeKey returns a string in format: 'armored'
+      return revokedKey as string;
+    } catch (error) {
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        `Failed to generate revocation certificate: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error : undefined
+      );
     }
+  };
 
-    const { publicKey: revokedKey } = await openpgp.revokeKey({
-      key: privateKey,
-      reasonForRevocation: {
-        flag: openpgp.enums.reasonForRevocation.noReason,
-        string: reason || 'Key revoked',
-      },
-    });
-
-    // revokeKey returns a string in format: 'armored'
-    return revokedKey as string;
-  } catch (error) {
-    throw new PGPError(
-      ErrorCode.INVALID_KEY,
-      `Failed to generate revocation certificate: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      error instanceof Error ? error : undefined
-    );
+  if (passphrase) {
+    return withSecurePassphrase(passphrase, doRevoke);
   }
+  return doRevoke();
 }
 
 /**

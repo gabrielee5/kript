@@ -174,18 +174,121 @@ export function constantTimeCompare(a: string, b: string): boolean {
 }
 
 /**
+ * Securely clear a Uint8Array by overwriting with zeros
+ * This is more effective than clearing strings since Uint8Array is mutable
+ */
+export function secureClearArray(arr: Uint8Array): void {
+  if (arr && arr.length > 0) {
+    // Overwrite with zeros
+    arr.fill(0);
+    // Try to use crypto.getRandomValues to overwrite with random data first
+    try {
+      crypto.getRandomValues(arr);
+      arr.fill(0);
+    } catch {
+      // Fallback: already filled with zeros
+    }
+  }
+}
+
+/**
  * Securely clear a string from memory (best effort)
- * Note: JavaScript doesn't guarantee memory clearing, but this helps
+ * Note: JavaScript strings are immutable, so this is limited in effectiveness
+ * For better security, use SecureBuffer instead of strings for sensitive data
  */
 export function secureClear(str: string): void {
-  // Overwrite the string in a way that might help GC
   // This is best-effort as JS strings are immutable
+  // The string may still exist in memory until GC runs
   if (typeof str === 'string' && str.length > 0) {
     // Create a mutable array and clear it
     const arr = str.split('');
     for (let i = 0; i < arr.length; i++) {
       arr[i] = '\0';
     }
+  }
+}
+
+/**
+ * A wrapper for sensitive data that provides secure clearing
+ * Stores data as Uint8Array for better memory control
+ */
+export class SecureBuffer {
+  private data: Uint8Array;
+  private cleared = false;
+
+  constructor(input: string | Uint8Array) {
+    if (typeof input === 'string') {
+      // Convert string to Uint8Array using TextEncoder
+      this.data = new TextEncoder().encode(input);
+    } else {
+      // Copy the array to ensure we own the memory
+      this.data = new Uint8Array(input);
+    }
+  }
+
+  /**
+   * Get the data as a string (for passphrase usage)
+   * Warning: This creates a new string that won't be cleared
+   */
+  toString(): string {
+    if (this.cleared) {
+      throw new Error('SecureBuffer has been cleared');
+    }
+    return new TextDecoder().decode(this.data);
+  }
+
+  /**
+   * Get the raw Uint8Array data
+   */
+  toArray(): Uint8Array {
+    if (this.cleared) {
+      throw new Error('SecureBuffer has been cleared');
+    }
+    return this.data;
+  }
+
+  /**
+   * Securely clear the buffer
+   */
+  clear(): void {
+    if (!this.cleared) {
+      secureClearArray(this.data);
+      this.cleared = true;
+    }
+  }
+
+  /**
+   * Check if the buffer has been cleared
+   */
+  isCleared(): boolean {
+    return this.cleared;
+  }
+
+  /**
+   * Get the length of the data
+   */
+  get length(): number {
+    return this.data.length;
+  }
+}
+
+/**
+ * Execute a function with a passphrase, ensuring it's cleared after use
+ * @param passphrase The passphrase to use
+ * @param fn The function to execute with the passphrase
+ * @returns The result of the function
+ */
+export async function withSecurePassphrase<T>(
+  passphrase: string,
+  fn: (passphrase: string) => Promise<T>
+): Promise<T> {
+  const securePassphrase = new SecureBuffer(passphrase);
+  try {
+    return await fn(securePassphrase.toString());
+  } finally {
+    securePassphrase.clear();
+    // Also attempt to clear the original string
+    secureClear(passphrase);
   }
 }
 
