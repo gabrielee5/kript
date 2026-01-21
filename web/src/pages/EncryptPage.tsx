@@ -122,8 +122,8 @@ export default function EncryptPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-4xl font-semibold leading-tight">Encrypt</h1>
-        <p className="text-text-secondary mt-tiny">Encrypt messages and files with PGP</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Encrypt</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">Encrypt messages and files with PGP</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
@@ -215,7 +215,7 @@ export default function EncryptPage() {
             />
           )}
 
-          <div className="flex gap-sm">
+          <div className="flex flex-col md:flex-row gap-md md:gap-sm">
             <input
               ref={fileInputRef}
               type="file"
@@ -225,10 +225,11 @@ export default function EncryptPage() {
             <Button
               variant="secondary"
               onClick={() => fileInputRef.current?.click()}
+              className="w-full md:w-auto"
             >
               Select File
             </Button>
-            <Button onClick={handleEncrypt} loading={encrypting}>
+            <Button onClick={handleEncrypt} loading={encrypting} className="w-full md:w-auto">
               Encrypt
             </Button>
           </div>
@@ -245,11 +246,11 @@ export default function EncryptPage() {
                   {output}
                 </pre>
               </div>
-              <div className="flex gap-sm">
-                <Button variant="secondary" onClick={handleCopy}>
+              <div className="flex flex-col md:flex-row gap-md md:gap-sm">
+                <Button variant="secondary" onClick={handleCopy} className="w-full md:w-auto">
                   Copy
                 </Button>
-                <Button variant="secondary" onClick={handleDownload}>
+                <Button variant="secondary" onClick={handleDownload} className="w-full md:w-auto">
                   Download
                 </Button>
               </div>

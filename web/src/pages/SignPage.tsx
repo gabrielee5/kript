@@ -115,8 +115,8 @@ export default function SignPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-4xl font-semibold leading-tight">Sign</h1>
-        <p className="text-text-secondary mt-tiny">Create digital signatures for messages and files</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Sign</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">Create digital signatures for messages and files</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
@@ -193,7 +193,7 @@ export default function SignPage() {
             />
           )}
 
-          <div className="flex gap-sm">
+          <div className="flex flex-col md:flex-row gap-md md:gap-sm">
             <input
               ref={fileInputRef}
               type="file"
@@ -203,10 +203,11 @@ export default function SignPage() {
             <Button
               variant="secondary"
               onClick={() => fileInputRef.current?.click()}
+              className="w-full md:w-auto"
             >
               Select File
             </Button>
-            <Button onClick={handleSign} loading={signing}>
+            <Button onClick={handleSign} loading={signing} className="w-full md:w-auto">
               Sign
             </Button>
           </div>
@@ -225,11 +226,11 @@ export default function SignPage() {
                   {detached ? signature : output}
                 </pre>
               </div>
-              <div className="flex gap-sm">
-                <Button variant="secondary" onClick={handleCopyOutput}>
+              <div className="flex flex-col md:flex-row gap-md md:gap-sm">
+                <Button variant="secondary" onClick={handleCopyOutput} className="w-full md:w-auto">
                   Copy
                 </Button>
-                <Button variant="secondary" onClick={handleDownloadOutput}>
+                <Button variant="secondary" onClick={handleDownloadOutput} className="w-full md:w-auto">
                   Download
                 </Button>
               </div>

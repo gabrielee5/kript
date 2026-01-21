@@ -43,8 +43,8 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-4xl font-semibold leading-tight">Settings</h1>
-        <p className="text-text-secondary mt-tiny">Configure Kript preferences</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Settings</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">Configure Kript preferences</p>
       </div>
 
       <div className="flex flex-col gap-lg max-w-2xl">
@@ -86,7 +86,7 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            <Button variant="secondary" onClick={resetSettings}>
+            <Button variant="secondary" onClick={resetSettings} className="w-full md:w-auto">
               Reset to Defaults
             </Button>
           </div>
@@ -106,15 +106,15 @@ export default function SettingsPage() {
               <strong>Keys in keyring:</strong> {keys.length}
             </div>
 
-            <div className="flex gap-sm">
-              <Button variant="secondary" onClick={handleExportAll}>
+            <div className="flex">
+              <Button variant="secondary" onClick={handleExportAll} className="w-full md:w-auto">
                 Export All Keys
               </Button>
             </div>
 
             <div className="border-t border-border pt-md mt-md">
               <h3 className="text-base font-semibold text-danger-text mb-sm">Danger Zone</h3>
-              <Button variant="danger" onClick={handleClearAllData}>
+              <Button variant="danger" onClick={handleClearAllData} className="w-full md:w-auto">
                 Delete All Data
               </Button>
             </div>

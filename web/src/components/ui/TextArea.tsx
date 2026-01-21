@@ -25,7 +25,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           id={inputId}
           className={`
             bg-white border border-border px-lg py-sm
-            font-mono text-sm text-text-primary
+            font-mono text-base md:text-sm text-text-primary
             transition-all duration-150
             hover:border-border-hover
             focus:border-black focus:outline-none

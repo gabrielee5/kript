@@ -62,14 +62,14 @@ function App() {
               ))}
             </nav>
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button - larger touch target (44px min) */}
             <button
-              className="md:hidden p-sm border border-border hover:border-border-hover transition-all duration-150"
+              className="md:hidden min-w-[44px] min-h-[44px] p-md border border-border hover:border-border-hover active:bg-bg-secondary transition-all duration-150 flex items-center justify-center"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -91,17 +91,17 @@ function App() {
             </button>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - larger touch targets and better spacing */}
           {mobileMenuOpen && (
             <nav className="md:hidden mt-md pt-md border-t border-border">
-              <div className="flex flex-col gap-sm">
+              <div className="flex flex-col gap-xs">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
-                      `text-xs tracking-wide py-sm transition-all duration-150 ${
+                      `text-sm tracking-wide py-md min-h-[44px] flex items-center transition-all duration-150 active:bg-bg-secondary ${
                         isActive
                           ? 'text-text-primary font-semibold'
                           : 'text-text-secondary hover:text-text-primary'
@@ -117,8 +117,8 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-[80rem] mx-auto px-lg py-2xl w-full">
+      {/* Main Content - increased padding on mobile */}
+      <main className="flex-1 max-w-[80rem] mx-auto px-md md:px-lg py-xl md:py-2xl w-full">
         <Routes>
           <Route path="/" element={<KeysPage />} />
           <Route path="/encrypt" element={<EncryptPage />} />

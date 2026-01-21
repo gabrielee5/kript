@@ -151,14 +151,15 @@ export default function KeysPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-xl">
         <div>
-          <h1 className="text-4xl font-semibold leading-tight">Keys</h1>
-          <p className="text-text-secondary mt-tiny">Manage your PGP key pairs</p>
+          <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Keys</h1>
+          <p className="text-text-secondary mt-tiny text-sm md:text-base">Manage your PGP key pairs</p>
         </div>
-        <div className="flex gap-sm">
-          <Button variant="secondary" onClick={() => setShowImportModal(true)}>
+        {/* Buttons: stack vertically on mobile with full width, horizontal on desktop */}
+        <div className="flex flex-col w-full md:w-auto md:flex-row gap-md md:gap-sm">
+          <Button variant="secondary" onClick={() => setShowImportModal(true)} className="w-full md:w-auto">
             Import Key
           </Button>
-          <Button onClick={() => setShowGenerateModal(true)}>
+          <Button onClick={() => setShowGenerateModal(true)} className="w-full md:w-auto">
             Generate Key
           </Button>
         </div>
@@ -195,15 +196,15 @@ export default function KeysPage() {
         <div className="flex flex-col gap-lg max-w-2xl">
           <Card>
             <h2 className="text-lg font-semibold mb-md">Your Keyring is Empty</h2>
-            <p className="text-text-secondary mb-lg">
+            <p className="text-text-secondary mb-lg text-sm md:text-base">
               PGP keys enable end-to-end encryption for secure communication. Generate a new key pair
               or import existing keys to start encrypting messages, signing files, and verifying authenticity.
             </p>
-            <div className="flex gap-sm">
-              <Button onClick={() => setShowGenerateModal(true)}>
+            <div className="flex flex-col md:flex-row gap-md md:gap-sm">
+              <Button onClick={() => setShowGenerateModal(true)} className="w-full md:w-auto">
                 Generate Key
               </Button>
-              <Button variant="secondary" onClick={() => setShowImportModal(true)}>
+              <Button variant="secondary" onClick={() => setShowImportModal(true)} className="w-full md:w-auto">
                 Import Key
               </Button>
             </div>
@@ -211,7 +212,7 @@ export default function KeysPage() {
 
           <Card>
             <h2 className="text-lg font-semibold mb-md">What You Can Do</h2>
-            <ul className="flex flex-col gap-sm text-text-secondary">
+            <ul className="flex flex-col gap-sm text-text-secondary text-sm md:text-base">
               <li>
                 <strong className="text-text-primary">Encrypt</strong> — Send messages only the intended recipient can read.
               </li>
@@ -229,7 +230,7 @@ export default function KeysPage() {
 
           <Card>
             <h2 className="text-lg font-semibold mb-md">How Keys Work</h2>
-            <p className="text-text-secondary">
+            <p className="text-text-secondary text-sm md:text-base">
               Each key pair consists of a <strong className="text-text-primary">public key</strong> you share with others
               and a <strong className="text-text-primary">private key</strong> you keep secret. Others encrypt messages
               with your public key that only your private key can decrypt. Always back up your private key
@@ -238,96 +239,177 @@ export default function KeysPage() {
           </Card>
         </div>
       ) : (
-        <div className="border border-border">
-          <table className="w-full border-collapse">
-            <thead className="bg-bg-secondary border-b border-border">
-              <tr>
-                <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                  User
-                </th>
-                <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide hidden md:table-cell">
-                  Key ID
-                </th>
-                <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide hidden lg:table-cell">
-                  Algorithm
-                </th>
-                <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                  Status
-                </th>
-                <th className="text-right p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {keys.map((entry) => {
-                const primaryUser = entry.keyInfo.userIds[0];
-                const isExpired = entry.keyInfo.expirationTime &&
-                  new Date(entry.keyInfo.expirationTime) < new Date();
-                const days = entry.keyInfo.expirationTime ?
-                  daysUntilExpiration(new Date(entry.keyInfo.expirationTime)) : null;
+        <>
+          {/* Desktop Table Layout - hidden on mobile */}
+          <div className="hidden md:block border border-border">
+            <table className="w-full border-collapse">
+              <thead className="bg-bg-secondary border-b border-border">
+                <tr>
+                  <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    User
+                  </th>
+                  <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Key ID
+                  </th>
+                  <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide hidden lg:table-cell">
+                    Algorithm
+                  </th>
+                  <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Status
+                  </th>
+                  <th className="text-right p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map((entry) => {
+                  const primaryUser = entry.keyInfo.userIds[0];
+                  const isExpired = entry.keyInfo.expirationTime &&
+                    new Date(entry.keyInfo.expirationTime) < new Date();
+                  const days = entry.keyInfo.expirationTime ?
+                    daysUntilExpiration(new Date(entry.keyInfo.expirationTime)) : null;
 
-                return (
-                  <tr
-                    key={entry.fingerprint}
-                    className="border-b border-border last:border-b-0 hover:bg-bg-secondary transition-all duration-150"
-                  >
-                    <td className="p-lg">
-                      <div className="font-semibold">{primaryUser?.name || 'Unknown'}</div>
-                      <div className="text-xs text-text-secondary">{primaryUser?.email}</div>
-                    </td>
-                    <td className="p-lg hidden md:table-cell">
-                      <code className="text-xs">{entry.keyId}</code>
-                    </td>
-                    <td className="p-lg text-sm hidden lg:table-cell">
-                      {entry.keyInfo.algorithm}
-                    </td>
-                    <td className="p-lg">
-                      <div className="flex flex-wrap gap-tiny">
-                        {entry.keyInfo.isPrivate && (
-                          <Badge variant="success">Private</Badge>
-                        )}
-                        {!entry.keyInfo.isPrivate && (
-                          <Badge variant="neutral">Public</Badge>
-                        )}
-                        {entry.keyInfo.revoked && (
-                          <Badge variant="danger">Revoked</Badge>
-                        )}
-                        {isExpired && (
-                          <Badge variant="danger">Expired</Badge>
-                        )}
-                        {!isExpired && days !== null && days < 30 && (
-                          <Badge variant="warning">Expires in {days}d</Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-lg text-right">
-                      <div className="flex justify-end gap-tiny">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedKey(entry.fingerprint);
-                            setShowExportModal(true);
-                          }}
-                        >
-                          Export
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleDelete(entry.fingerprint)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  return (
+                    <tr
+                      key={entry.fingerprint}
+                      className="border-b border-border last:border-b-0 hover:bg-bg-secondary transition-all duration-150"
+                    >
+                      <td className="p-lg">
+                        <div className="font-semibold">{primaryUser?.name || 'Unknown'}</div>
+                        <div className="text-xs text-text-secondary">{primaryUser?.email}</div>
+                      </td>
+                      <td className="p-lg">
+                        <code className="text-xs">{entry.keyId}</code>
+                      </td>
+                      <td className="p-lg text-sm hidden lg:table-cell">
+                        {entry.keyInfo.algorithm}
+                      </td>
+                      <td className="p-lg">
+                        <div className="flex flex-wrap gap-tiny">
+                          {entry.keyInfo.isPrivate && (
+                            <Badge variant="success">Private</Badge>
+                          )}
+                          {!entry.keyInfo.isPrivate && (
+                            <Badge variant="neutral">Public</Badge>
+                          )}
+                          {entry.keyInfo.revoked && (
+                            <Badge variant="danger">Revoked</Badge>
+                          )}
+                          {isExpired && (
+                            <Badge variant="danger">Expired</Badge>
+                          )}
+                          {!isExpired && days !== null && days < 30 && (
+                            <Badge variant="warning">Expires in {days}d</Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-lg text-right">
+                        <div className="flex justify-end gap-sm">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedKey(entry.fingerprint);
+                              setShowExportModal(true);
+                            }}
+                          >
+                            Export
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleDelete(entry.fingerprint)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card Layout - visible only on mobile */}
+          <div className="md:hidden flex flex-col gap-md">
+            {keys.map((entry) => {
+              const primaryUser = entry.keyInfo.userIds[0];
+              const isExpired = entry.keyInfo.expirationTime &&
+                new Date(entry.keyInfo.expirationTime) < new Date();
+              const days = entry.keyInfo.expirationTime ?
+                daysUntilExpiration(new Date(entry.keyInfo.expirationTime)) : null;
+
+              return (
+                <div
+                  key={entry.fingerprint}
+                  className="border border-border p-lg bg-white"
+                >
+                  {/* Header: Name and Status Badges */}
+                  <div className="flex justify-between items-start gap-sm mb-md">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-base truncate">{primaryUser?.name || 'Unknown'}</div>
+                      <div className="text-sm text-text-secondary break-all">{primaryUser?.email}</div>
+                    </div>
+                    <div className="flex flex-wrap gap-tiny justify-end shrink-0">
+                      {entry.keyInfo.isPrivate && (
+                        <Badge variant="success">Private</Badge>
+                      )}
+                      {!entry.keyInfo.isPrivate && (
+                        <Badge variant="neutral">Public</Badge>
+                      )}
+                      {entry.keyInfo.revoked && (
+                        <Badge variant="danger">Revoked</Badge>
+                      )}
+                      {isExpired && (
+                        <Badge variant="danger">Expired</Badge>
+                      )}
+                      {!isExpired && days !== null && days < 30 && (
+                        <Badge variant="warning">Expires {days}d</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Key Details */}
+                  <div className="flex flex-col gap-xs text-sm text-text-secondary mb-lg">
+                    <div className="flex gap-sm">
+                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">Key ID</span>
+                      <code className="text-xs break-all">{entry.keyId}</code>
+                    </div>
+                    <div className="flex gap-sm">
+                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">Algorithm</span>
+                      <span className="text-sm">{entry.keyInfo.algorithm}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Full width, stacked with proper spacing */}
+                  <div className="flex gap-md">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedKey(entry.fingerprint);
+                        setShowExportModal(true);
+                      }}
+                    >
+                      Export
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleDelete(entry.fingerprint)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Generate Modal */}

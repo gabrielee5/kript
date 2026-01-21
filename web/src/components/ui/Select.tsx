@@ -25,7 +25,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           id={inputId}
           className={`
             bg-white border border-border px-lg py-sm
-            font-mono text-sm text-text-primary
+            font-mono text-base md:text-sm text-text-primary
+            min-h-[44px] md:min-h-0
             transition-all duration-150
             hover:border-border-hover
             focus:border-black focus:outline-none

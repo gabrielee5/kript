@@ -8,7 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
-    const baseStyles = 'font-mono transition-all duration-150 cursor-pointer disabled:cursor-not-allowed';
+    // Base styles with mobile touch target (min-h-[44px] on mobile, normal on desktop)
+    const baseStyles = 'font-mono transition-all duration-150 cursor-pointer disabled:cursor-not-allowed min-h-[44px] md:min-h-0 active:scale-[0.98] active:opacity-90';
 
     const variants = {
       primary: 'bg-black text-white border-none hover:bg-gray-700 disabled:bg-gray-300',
@@ -16,9 +17,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       danger: 'bg-danger-solid text-white border-none hover:bg-red-600 disabled:bg-red-300',
     };
 
+    // Sizes with mobile-friendly padding (larger touch targets on mobile)
     const sizes = {
-      sm: 'px-sm py-tiny text-xs',
-      md: 'px-lg py-sm text-sm',
+      sm: 'px-md py-xs text-sm md:px-sm md:py-tiny md:text-xs',
+      md: 'px-lg py-sm text-base md:text-sm',
       lg: 'px-xl py-md text-base',
     };
 
