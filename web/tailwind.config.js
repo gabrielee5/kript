@@ -16,15 +16,15 @@ export default {
         ],
       },
       fontSize: {
-        tiny: '0.625rem',
-        xs: '0.75rem',
-        sm: '0.875rem',
-        base: '1rem',
-        lg: '1.125rem',
-        xl: '1.25rem',
-        '2xl': '1.5rem',
-        '3xl': '1.875rem',
-        '4xl': '2.25rem',
+        tiny: '0.6875rem', // 11px - minimum for decorative/secondary text
+        xs: '0.8125rem',   // 13px - for labels, hints, secondary content
+        sm: '0.875rem',    // 14px - for body text, inputs
+        base: '1rem',      // 16px - primary body text
+        lg: '1.125rem',    // 18px - emphasized text
+        xl: '1.25rem',     // 20px - small headings
+        '2xl': '1.5rem',   // 24px - section headings
+        '3xl': '1.875rem', // 30px - page headings
+        '4xl': '2.25rem',  // 36px - large headings
       },
       colors: {
         border: '#e5e7eb',

@@ -15,7 +15,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs text-text-secondary uppercase tracking-wide"
+            className="text-sm text-text-secondary uppercase tracking-wide"
           >
             {label}
           </label>

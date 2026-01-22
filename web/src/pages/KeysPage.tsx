@@ -524,7 +524,7 @@ export default function KeysPage() {
           {importError && <Alert variant="danger">{importError}</Alert>}
 
           <div className="flex flex-col gap-tiny">
-            <label className="text-xs text-text-secondary uppercase tracking-wide">
+            <label className="text-sm text-text-secondary uppercase tracking-wide">
               Paste PGP Key
             </label>
             <textarea
@@ -535,7 +535,7 @@ export default function KeysPage() {
             />
           </div>
 
-          <div className="text-xs text-text-secondary">
+          <div className="text-sm text-text-secondary">
             Or drag and drop a .asc or .gpg file here
           </div>
         </div>
@@ -566,7 +566,7 @@ export default function KeysPage() {
           return (
             <div className="flex flex-col gap-md">
               <div>
-                <div className="text-xs text-text-secondary uppercase tracking-wide mb-tiny">
+                <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
                   Public Key
                 </div>
                 <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
@@ -622,7 +622,7 @@ export default function KeysPage() {
                       <Alert variant="danger" className="mb-sm">
                         Handle with extreme care! Never share your private key.
                       </Alert>
-                      <div className="text-xs text-text-secondary uppercase tracking-wide mb-tiny">
+                      <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
                         Private Key
                       </div>
                       <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">

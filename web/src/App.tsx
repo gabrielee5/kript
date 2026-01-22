@@ -50,7 +50,7 @@ function App() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `text-xs tracking-wide transition-all duration-150 ${
+                    `text-sm tracking-wide transition-all duration-150 ${
                       isActive
                         ? 'text-text-primary font-semibold'
                         : 'text-text-secondary hover:text-text-primary'
@@ -133,7 +133,7 @@ function App() {
       {/* Footer */}
       <footer className="border-t border-border mt-auto">
         <div className="max-w-[80rem] mx-auto px-lg py-lg">
-          <div className="flex flex-col gap-sm text-xs text-text-secondary">
+          <div className="flex flex-col gap-sm text-sm text-text-secondary">
             <div className="flex flex-col md:flex-row justify-between items-center gap-md">
               <div>Kript v1.0.0 - All operations run locally in your browser</div>
               <div className="flex items-center gap-lg">

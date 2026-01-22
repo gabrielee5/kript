@@ -195,7 +195,7 @@ export default function EncryptPage() {
           {/* Message or File */}
           {fileName ? (
             <div className="mb-md">
-              <div className="text-xs text-text-secondary uppercase tracking-wide mb-tiny">
+              <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
                 File
               </div>
               <div className="flex items-center justify-between border border-border p-sm">

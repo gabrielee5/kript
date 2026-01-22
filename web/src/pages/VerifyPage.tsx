@@ -300,7 +300,7 @@ export default function VerifyPage() {
               {/* Extracted message */}
               {extractedMessage && (
                 <div>
-                  <div className="text-xs text-text-secondary uppercase tracking-wide mb-tiny">
+                  <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
                     Message Content
                   </div>
                   <div className="bg-bg-secondary border border-border p-sm">
