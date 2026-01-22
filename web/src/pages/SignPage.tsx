@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Card, TextArea, Select, Input, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { sign } from '@kript/core';
 
 export default function SignPage() {
+  const { t } = useTranslation();
   const { keys, loading } = useKeyring();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,12 +50,12 @@ export default function SignPage() {
     setSignature('');
 
     if (!message && !fileData) {
-      setError('Please enter a message or select a file');
+      setError(t('sign.errors.noInput'));
       return;
     }
 
     if (!selectedKey) {
-      setError('Please select a signing key');
+      setError(t('sign.errors.noKey'));
       return;
     }
 
@@ -62,7 +64,7 @@ export default function SignPage() {
 
       const keyEntry = keys.find((k) => k.fingerprint === selectedKey);
       if (!keyEntry?.privateKey) {
-        setError('Private key not found');
+        setError(t('sign.errors.privateKeyNotFound'));
         return;
       }
 
@@ -83,7 +85,7 @@ export default function SignPage() {
         setOutput(result.data as string);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signing failed');
+      setError(err instanceof Error ? err.message : t('sign.errors.signingFailed'));
     } finally {
       setSigning(false);
     }
@@ -115,29 +117,29 @@ export default function SignPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Sign</h1>
-        <p className="text-text-secondary mt-tiny text-sm md:text-base">Create digital signatures for messages and files</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">{t('sign.title')}</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">{t('sign.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
         {/* Input */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Input</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('sign.input')}</h2>
 
           {error && <Alert variant="danger" className="mb-md">{error}</Alert>}
 
           {/* Signing Key */}
           {privateKeys.length === 0 ? (
             <Alert variant="warning" className="mb-md">
-              No private keys available. Import or generate a key first.
+              {t('sign.noPrivateKeys')}
             </Alert>
           ) : (
             <Select
-              label="Signing Key"
+              label={t('sign.signingKey')}
               value={selectedKey}
               onChange={(e) => setSelectedKey(e.target.value)}
               options={[
-                { value: '', label: 'Select key...' },
+                { value: '', label: t('sign.selectKey') },
                 ...privateKeys.map((k) => ({
                   value: k.fingerprint,
                   label: `${k.keyInfo.userIds[0]?.email || k.keyId}`,
@@ -148,11 +150,11 @@ export default function SignPage() {
           )}
 
           <Input
-            label="Passphrase"
+            label={t('common.passphrase')}
             type="password"
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
-            placeholder="Enter key passphrase"
+            placeholder={t('sign.enterPassphrase')}
             className="mb-md"
           />
 
@@ -166,7 +168,7 @@ export default function SignPage() {
               className="w-4 h-4"
             />
             <label htmlFor="detached" className="text-sm">
-              Create detached signature
+              {t('sign.createDetached')}
             </label>
           </div>
 
@@ -174,21 +176,21 @@ export default function SignPage() {
           {fileName ? (
             <div className="mb-md">
               <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
-                File
+                {t('common.file')}
               </div>
               <div className="flex items-center justify-between border border-border p-sm">
                 <span className="text-sm">{fileName}</span>
                 <Button variant="secondary" size="sm" onClick={clearFile}>
-                  Remove
+                  {t('common.remove')}
                 </Button>
               </div>
             </div>
           ) : (
             <TextArea
-              label="Message"
+              label={t('common.message')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter message to sign..."
+              placeholder={t('sign.messagePlaceholder')}
               className="min-h-[200px] mb-md"
             />
           )}
@@ -205,10 +207,10 @@ export default function SignPage() {
               onClick={() => fileInputRef.current?.click()}
               className="w-full md:w-auto"
             >
-              Select File
+              {t('common.selectFile')}
             </Button>
             <Button onClick={handleSign} loading={signing} className="w-full md:w-auto">
-              Sign
+              {t('common.sign')}
             </Button>
           </div>
         </Card>
@@ -216,7 +218,7 @@ export default function SignPage() {
         {/* Output */}
         <Card>
           <h2 className="text-lg font-semibold mb-md">
-            {detached ? 'Signature' : 'Signed Message'}
+            {detached ? t('sign.signatureTitle') : t('sign.outputTitle')}
           </h2>
 
           {(output || signature) ? (
@@ -228,16 +230,16 @@ export default function SignPage() {
               </div>
               <div className="flex flex-col md:flex-row gap-md md:gap-sm">
                 <Button variant="secondary" onClick={handleCopyOutput} className="w-full md:w-auto">
-                  Copy
+                  {t('common.copy')}
                 </Button>
                 <Button variant="secondary" onClick={handleDownloadOutput} className="w-full md:w-auto">
-                  Download
+                  {t('common.download')}
                 </Button>
               </div>
             </>
           ) : (
             <div className="text-text-secondary text-sm">
-              {detached ? 'Detached signature' : 'Signed message'} will appear here
+              {detached ? t('sign.signaturePlaceholder') : t('sign.outputPlaceholder')}
             </div>
           )}
         </Card>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Card, Badge, Modal, Input, Select, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { useSettings } from '../hooks/useSettings';
 import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey } from '@kript/core';
 
 export default function KeysPage() {
+  const { t } = useTranslation();
   const { keys, loading, error, deleteKey, generateKey, addKey } = useKeyring();
   const { settings } = useSettings();
 
@@ -40,19 +42,19 @@ export default function KeysPage() {
     setGenError(null);
 
     if (!genName.trim()) {
-      setGenError('Name is required');
+      setGenError(t('keys.errors.nameRequired'));
       return;
     }
     if (!genEmail.trim()) {
-      setGenError('Email is required');
+      setGenError(t('keys.errors.emailRequired'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(genEmail)) {
-      setGenError('Invalid email format');
+      setGenError(t('keys.errors.invalidEmail'));
       return;
     }
     if (genPassphrase && genPassphrase !== genConfirmPassphrase) {
-      setGenError('Passphrases do not match');
+      setGenError(t('keys.errors.passphrasesMismatch'));
       return;
     }
 
@@ -73,7 +75,7 @@ export default function KeysPage() {
       setShowGenerateModal(false);
       resetGenerateForm();
     } catch (err) {
-      setGenError(err instanceof Error ? err.message : 'Generation failed');
+      setGenError(err instanceof Error ? err.message : t('keys.errors.generationFailed'));
     } finally {
       setGenerating(false);
     }
@@ -83,7 +85,7 @@ export default function KeysPage() {
     setImportError(null);
 
     if (!importText.trim()) {
-      setImportError('Please paste a PGP key');
+      setImportError(t('keys.errors.pleaseEnterKey'));
       return;
     }
 
@@ -94,14 +96,14 @@ export default function KeysPage() {
       setShowImportModal(false);
       setImportText('');
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
+      setImportError(err instanceof Error ? err.message : t('keys.errors.importFailed'));
     } finally {
       setImporting(false);
     }
   };
 
   const handleDelete = async (keyId: string) => {
-    if (confirm('Are you sure you want to delete this key?')) {
+    if (confirm(t('keys.deleteConfirm'))) {
       await deleteKey(keyId);
     }
   };
@@ -130,7 +132,7 @@ export default function KeysPage() {
       await decryptPrivateKey(privateKey, exportPassphrase);
       setShowPrivateKey(true);
     } catch (err) {
-      setExportError(err instanceof Error ? err.message : 'Invalid passphrase');
+      setExportError(err instanceof Error ? err.message : t('keys.errors.invalidPassphrase'));
     } finally {
       setVerifyingPassphrase(false);
     }
@@ -151,16 +153,15 @@ export default function KeysPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-md mb-xl">
         <div>
-          <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Keys</h1>
-          <p className="text-text-secondary mt-tiny text-sm md:text-base">Manage your PGP key pairs</p>
+          <h1 className="text-3xl md:text-4xl font-semibold leading-tight">{t('keys.title')}</h1>
+          <p className="text-text-secondary mt-tiny text-sm md:text-base">{t('keys.subtitle')}</p>
         </div>
-        {/* Buttons: stack vertically on mobile with full width, horizontal on desktop */}
         <div className="flex flex-col w-full md:w-auto md:flex-row gap-md md:gap-sm">
           <Button variant="secondary" onClick={() => setShowImportModal(true)} className="w-full md:w-auto">
-            Import Key
+            {t('keys.importKey')}
           </Button>
           <Button onClick={() => setShowGenerateModal(true)} className="w-full md:w-auto">
-            Generate Key
+            {t('keys.generateKey')}
           </Button>
         </div>
       </div>
@@ -172,8 +173,8 @@ export default function KeysPage() {
       )}
 
       {revocationCert && (
-        <Alert variant="warning" title="Save Your Revocation Certificate" className="mb-lg">
-          <p className="mb-sm">Store this certificate safely. You'll need it to revoke your key if compromised.</p>
+        <Alert variant="warning" title={t('keys.revocationTitle')} className="mb-lg">
+          <p className="mb-sm">{t('keys.revocationDescription')}</p>
           <pre className="bg-white border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all">
             {revocationCert}
           </pre>
@@ -186,7 +187,7 @@ export default function KeysPage() {
               setRevocationCert(null);
             }}
           >
-            Copy & Dismiss
+            {t('keys.copyAndDismiss')}
           </Button>
         </Alert>
       )}
@@ -195,70 +196,64 @@ export default function KeysPage() {
       {keys.length === 0 ? (
         <div className="flex flex-col gap-lg max-w-2xl">
           <Card>
-            <h2 className="text-lg font-semibold mb-md">Your Keyring is Empty</h2>
+            <h2 className="text-lg font-semibold mb-md">{t('keys.emptyTitle')}</h2>
             <p className="text-text-secondary mb-lg text-sm md:text-base">
-              PGP keys enable end-to-end encryption for secure communication. Generate a new key pair
-              or import existing keys to start encrypting messages, signing files, and verifying authenticity.
+              {t('keys.emptyDescription')}
             </p>
             <div className="flex flex-col md:flex-row gap-md md:gap-sm">
               <Button onClick={() => setShowGenerateModal(true)} className="w-full md:w-auto">
-                Generate Key
+                {t('keys.generateKey')}
               </Button>
               <Button variant="secondary" onClick={() => setShowImportModal(true)} className="w-full md:w-auto">
-                Import Key
+                {t('keys.importKey')}
               </Button>
             </div>
           </Card>
 
           <Card>
-            <h2 className="text-lg font-semibold mb-md">What You Can Do</h2>
+            <h2 className="text-lg font-semibold mb-md">{t('keys.whatCanDo')}</h2>
             <ul className="flex flex-col gap-sm text-text-secondary text-sm md:text-base">
               <li>
-                <strong className="text-text-primary">Encrypt</strong> — Send messages only the intended recipient can read.
+                <strong className="text-text-primary">{t('common.encrypt')}</strong> — {t('keys.whatCanDoEncrypt')}
               </li>
               <li>
-                <strong className="text-text-primary">Sign</strong> — Prove that a file or message truly came from you.
+                <strong className="text-text-primary">{t('common.sign')}</strong> — {t('keys.whatCanDoSign')}
               </li>
               <li>
-                <strong className="text-text-primary">Verify</strong> — Confirm the authenticity of signed content from others.
+                <strong className="text-text-primary">{t('common.verify')}</strong> — {t('keys.whatCanDoVerify')}
               </li>
               <li>
-                <strong className="text-text-primary">Secure Email</strong> — Use PGP/MIME or inline encryption with any email client.
+                <strong className="text-text-primary">{t('keys.whatCanDoSecureEmail').split(' ')[0]}</strong> — {t('keys.whatCanDoSecureEmail')}
               </li>
             </ul>
           </Card>
 
           <Card>
-            <h2 className="text-lg font-semibold mb-md">How Keys Work</h2>
-            <p className="text-text-secondary text-sm md:text-base">
-              Each key pair consists of a <strong className="text-text-primary">public key</strong> you share with others
-              and a <strong className="text-text-primary">private key</strong> you keep secret. Others encrypt messages
-              with your public key that only your private key can decrypt. Always back up your private key
-              and protect it with a strong passphrase.
-            </p>
+            <h2 className="text-lg font-semibold mb-md">{t('keys.howKeysWork')}</h2>
+            <p className="text-text-secondary text-sm md:text-base" dangerouslySetInnerHTML={{ __html: t('keys.howKeysWorkDescription') }} />
           </Card>
         </div>
       ) : (
         <>
-          {/* Desktop Table Layout - hidden on mobile */}
+          {/* Desktop Table Layout */}
           <div className="hidden md:block border border-border">
             <table className="w-full border-collapse">
               <thead className="bg-bg-secondary border-b border-border">
                 <tr>
                   <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                    User
+                    {t('keys.tableUser')}
                   </th>
                   <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                    Key ID
+                    {t('keys.tableKeyId')}
                   </th>
                   <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide hidden lg:table-cell">
-                    Algorithm
+                    {t('keys.tableAlgorithm')}
                   </th>
                   <th className="text-left p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                    Status
+                    {t('keys.tableStatus')}
                   </th>
                   <th className="text-right p-md text-xs font-medium text-text-secondary uppercase tracking-wide">
-                    Actions
+                    {t('keys.tableActions')}
                   </th>
                 </tr>
               </thead>
@@ -276,7 +271,7 @@ export default function KeysPage() {
                       className="border-b border-border last:border-b-0 hover:bg-bg-secondary transition-all duration-150"
                     >
                       <td className="p-lg">
-                        <div className="font-semibold">{primaryUser?.name || 'Unknown'}</div>
+                        <div className="font-semibold">{primaryUser?.name || t('keys.unknown')}</div>
                         <div className="text-xs text-text-secondary">{primaryUser?.email}</div>
                       </td>
                       <td className="p-lg">
@@ -288,19 +283,19 @@ export default function KeysPage() {
                       <td className="p-lg">
                         <div className="flex flex-wrap gap-tiny">
                           {entry.keyInfo.isPrivate && (
-                            <Badge variant="success">Private</Badge>
+                            <Badge variant="success">{t('keys.statusPrivate')}</Badge>
                           )}
                           {!entry.keyInfo.isPrivate && (
-                            <Badge variant="neutral">Public</Badge>
+                            <Badge variant="neutral">{t('keys.statusPublic')}</Badge>
                           )}
                           {entry.keyInfo.revoked && (
-                            <Badge variant="danger">Revoked</Badge>
+                            <Badge variant="danger">{t('keys.statusRevoked')}</Badge>
                           )}
                           {isExpired && (
-                            <Badge variant="danger">Expired</Badge>
+                            <Badge variant="danger">{t('keys.statusExpired')}</Badge>
                           )}
                           {!isExpired && days !== null && days < 30 && (
-                            <Badge variant="warning">Expires in {days}d</Badge>
+                            <Badge variant="warning">{t('keys.statusExpiresDays', { days })}</Badge>
                           )}
                         </div>
                       </td>
@@ -314,14 +309,14 @@ export default function KeysPage() {
                               setShowExportModal(true);
                             }}
                           >
-                            Export
+                            {t('common.export')}
                           </Button>
                           <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => handleDelete(entry.fingerprint)}
                           >
-                            Delete
+                            {t('common.delete')}
                           </Button>
                         </div>
                       </td>
@@ -332,7 +327,7 @@ export default function KeysPage() {
             </table>
           </div>
 
-          {/* Mobile Card Layout - visible only on mobile */}
+          {/* Mobile Card Layout */}
           <div className="md:hidden flex flex-col gap-md">
             {keys.map((entry) => {
               const primaryUser = entry.keyInfo.userIds[0];
@@ -346,44 +341,41 @@ export default function KeysPage() {
                   key={entry.fingerprint}
                   className="border border-border p-lg bg-white"
                 >
-                  {/* Header: Name and Status Badges */}
                   <div className="flex justify-between items-start gap-sm mb-md">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-base truncate">{primaryUser?.name || 'Unknown'}</div>
+                      <div className="font-semibold text-base truncate">{primaryUser?.name || t('keys.unknown')}</div>
                       <div className="text-sm text-text-secondary break-all">{primaryUser?.email}</div>
                     </div>
                     <div className="flex flex-wrap gap-tiny justify-end shrink-0">
                       {entry.keyInfo.isPrivate && (
-                        <Badge variant="success">Private</Badge>
+                        <Badge variant="success">{t('keys.statusPrivate')}</Badge>
                       )}
                       {!entry.keyInfo.isPrivate && (
-                        <Badge variant="neutral">Public</Badge>
+                        <Badge variant="neutral">{t('keys.statusPublic')}</Badge>
                       )}
                       {entry.keyInfo.revoked && (
-                        <Badge variant="danger">Revoked</Badge>
+                        <Badge variant="danger">{t('keys.statusRevoked')}</Badge>
                       )}
                       {isExpired && (
-                        <Badge variant="danger">Expired</Badge>
+                        <Badge variant="danger">{t('keys.statusExpired')}</Badge>
                       )}
                       {!isExpired && days !== null && days < 30 && (
-                        <Badge variant="warning">Expires {days}d</Badge>
+                        <Badge variant="warning">{t('keys.statusExpiresDays', { days })}</Badge>
                       )}
                     </div>
                   </div>
 
-                  {/* Key Details */}
                   <div className="flex flex-col gap-xs text-sm text-text-secondary mb-lg">
                     <div className="flex gap-sm">
-                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">Key ID</span>
+                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">{t('keys.tableKeyId')}</span>
                       <code className="text-xs break-all">{entry.keyId}</code>
                     </div>
                     <div className="flex gap-sm">
-                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">Algorithm</span>
+                      <span className="text-text-tertiary uppercase text-xs w-20 shrink-0">{t('keys.tableAlgorithm')}</span>
                       <span className="text-sm">{entry.keyInfo.algorithm}</span>
                     </div>
                   </div>
 
-                  {/* Action Buttons - Full width, stacked with proper spacing */}
                   <div className="flex gap-md">
                     <Button
                       variant="secondary"
@@ -394,7 +386,7 @@ export default function KeysPage() {
                         setShowExportModal(true);
                       }}
                     >
-                      Export
+                      {t('common.export')}
                     </Button>
                     <Button
                       variant="secondary"
@@ -402,7 +394,7 @@ export default function KeysPage() {
                       className="flex-1"
                       onClick={() => handleDelete(entry.fingerprint)}
                     >
-                      Delete
+                      {t('common.delete')}
                     </Button>
                   </div>
                 </div>
@@ -419,14 +411,14 @@ export default function KeysPage() {
           setShowGenerateModal(false);
           resetGenerateForm();
         }}
-        title="Generate New Key Pair"
+        title={t('keys.generateModalTitle')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowGenerateModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleGenerate} loading={generating}>
-              Generate
+              {t('common.generate')}
             </Button>
           </>
         }
@@ -435,40 +427,40 @@ export default function KeysPage() {
           {genError && <Alert variant="danger">{genError}</Alert>}
 
           <Input
-            label="Name"
+            label={t('keys.name')}
             value={genName}
             onChange={(e) => setGenName(e.target.value)}
-            placeholder="Your Name"
+            placeholder={t('keys.namePlaceholder')}
           />
 
           <Input
-            label="Email"
+            label={t('keys.email')}
             type="email"
             value={genEmail}
             onChange={(e) => setGenEmail(e.target.value)}
-            placeholder="your@email.com"
+            placeholder={t('keys.emailPlaceholder')}
           />
 
           <Input
-            label="Comment (optional)"
+            label={t('keys.comment')}
             value={genComment}
             onChange={(e) => setGenComment(e.target.value)}
-            placeholder="Optional comment"
+            placeholder={t('keys.commentPlaceholder')}
           />
 
           <Select
-            label="Algorithm"
+            label={t('keys.algorithm')}
             value={genAlgorithm}
             onChange={(e) => setGenAlgorithm(e.target.value as KeyAlgorithm)}
             options={[
-              { value: 'curve25519', label: 'Curve25519 (Recommended)' },
-              { value: 'rsa4096', label: 'RSA 4096' },
-              { value: 'rsa2048', label: 'RSA 2048' },
+              { value: 'curve25519', label: t('keys.algorithmCurve') },
+              { value: 'rsa4096', label: t('keys.algorithmRsa4096') },
+              { value: 'rsa2048', label: t('keys.algorithmRsa2048') },
             ]}
           />
 
           <Input
-            label="Expiration (days, 0 = never)"
+            label={t('keys.expiration')}
             type="number"
             value={genExpiration}
             onChange={(e) => setGenExpiration(e.target.value)}
@@ -476,25 +468,25 @@ export default function KeysPage() {
           />
 
           <Input
-            label="Passphrase"
+            label={t('common.passphrase')}
             type="password"
             value={genPassphrase}
             onChange={(e) => setGenPassphrase(e.target.value)}
-            placeholder="Enter passphrase"
-            hint={passphraseStrength ? `Strength: ${'●'.repeat(passphraseStrength.score)}${'○'.repeat(4 - passphraseStrength.score)}` : undefined}
+            placeholder={t('keys.passphrasePlaceholder')}
+            hint={passphraseStrength ? `${t('keys.passphraseStrength')} ${'●'.repeat(passphraseStrength.score)}${'○'.repeat(4 - passphraseStrength.score)}` : undefined}
           />
 
           <Input
-            label="Confirm Passphrase"
+            label={t('keys.confirmPassphrase')}
             type="password"
             value={genConfirmPassphrase}
             onChange={(e) => setGenConfirmPassphrase(e.target.value)}
-            placeholder="Confirm passphrase"
+            placeholder={t('keys.confirmPassphrasePlaceholder')}
           />
 
           {!genPassphrase && (
             <Alert variant="warning">
-              No passphrase set. Your private key will be unprotected.
+              {t('keys.noPassphraseWarning')}
             </Alert>
           )}
         </div>
@@ -508,14 +500,14 @@ export default function KeysPage() {
           setImportText('');
           setImportError(null);
         }}
-        title="Import Key"
+        title={t('keys.importModalTitle')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowImportModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleImport} loading={importing}>
-              Import
+              {t('common.import')}
             </Button>
           </>
         }
@@ -525,18 +517,18 @@ export default function KeysPage() {
 
           <div className="flex flex-col gap-tiny">
             <label className="text-sm text-text-secondary uppercase tracking-wide">
-              Paste PGP Key
+              {t('keys.pasteKey')}
             </label>
             <textarea
               className="bg-white border border-border px-lg py-sm font-mono text-sm min-h-[200px] transition-all duration-150 hover:border-border-hover focus:border-black focus:outline-none"
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
-              placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----&#10;...&#10;-----END PGP PUBLIC KEY BLOCK-----"
+              placeholder={t('keys.pasteKeyPlaceholder')}
             />
           </div>
 
           <div className="text-sm text-text-secondary">
-            Or drag and drop a .asc or .gpg file here
+            {t('keys.dragDropHint')}
           </div>
         </div>
       </Modal>
@@ -549,13 +541,13 @@ export default function KeysPage() {
           setSelectedKey(null);
           resetExportState();
         }}
-        title="Export Key"
+        title={t('keys.exportModalTitle')}
         footer={
           <Button variant="secondary" onClick={() => {
             setShowExportModal(false);
             resetExportState();
           }}>
-            Close
+            {t('common.close')}
           </Button>
         }
       >
@@ -567,7 +559,7 @@ export default function KeysPage() {
             <div className="flex flex-col gap-md">
               <div>
                 <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
-                  Public Key
+                  {t('keys.publicKey')}
                 </div>
                 <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
                   {entry.publicKey}
@@ -578,7 +570,7 @@ export default function KeysPage() {
                   className="mt-sm"
                   onClick={() => navigator.clipboard.writeText(entry.publicKey)}
                 >
-                  Copy Public Key
+                  {t('keys.copyPublicKey')}
                 </Button>
               </div>
 
@@ -587,7 +579,7 @@ export default function KeysPage() {
                   {!showPrivateKey ? (
                     <>
                       <Alert variant="warning" className="mb-sm">
-                        Private key export is available. Enter your passphrase to reveal it.
+                        {t('keys.privateKeyExportHint')}
                       </Alert>
                       {exportError && (
                         <Alert variant="danger" className="mb-sm">
@@ -596,11 +588,11 @@ export default function KeysPage() {
                       )}
                       <div className="flex gap-sm items-end">
                         <Input
-                          label="Passphrase"
+                          label={t('common.passphrase')}
                           type="password"
                           value={exportPassphrase}
                           onChange={(e) => setExportPassphrase(e.target.value)}
-                          placeholder="Enter passphrase"
+                          placeholder={t('keys.passphrasePlaceholder')}
                           className="flex-1"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -613,17 +605,17 @@ export default function KeysPage() {
                           onClick={() => handleVerifyPassphrase(entry.privateKey!)}
                           loading={verifyingPassphrase}
                         >
-                          Reveal Private Key
+                          {t('keys.revealPrivateKey')}
                         </Button>
                       </div>
                     </>
                   ) : (
                     <>
                       <Alert variant="danger" className="mb-sm">
-                        Handle with extreme care! Never share your private key.
+                        {t('keys.privateKeyWarning')}
                       </Alert>
                       <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
-                        Private Key
+                        {t('keys.privateKey')}
                       </div>
                       <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
                         {entry.privateKey}
@@ -634,7 +626,7 @@ export default function KeysPage() {
                         className="mt-sm"
                         onClick={() => navigator.clipboard.writeText(entry.privateKey!)}
                       >
-                        Copy Private Key
+                        {t('keys.copyPrivateKey')}
                       </Button>
                     </>
                   )}

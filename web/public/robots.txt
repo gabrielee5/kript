@@ -1,0 +1,11 @@
+# Robots.txt for Kript - PGP Encryption Tool
+# https://kript.fabietti.xyz
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://kript.fabietti.xyz/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

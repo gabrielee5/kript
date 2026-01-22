@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Card, TextArea, Select, Input, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { decrypt, decryptWithPassword, VerificationResult } from '@kript/core';
 
 export default function DecryptPage() {
+  const { t } = useTranslation();
   const { keys, loading } = useKeyring();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,7 +40,7 @@ export default function DecryptPage() {
     setSignatures([]);
 
     if (!encryptedMessage) {
-      setError('Please enter or upload encrypted data');
+      setError(t('decrypt.errors.noInput'));
       return;
     }
 
@@ -47,20 +49,20 @@ export default function DecryptPage() {
 
       if (useSymmetric) {
         if (!password) {
-          setError('Please enter a password');
+          setError(t('decrypt.errors.noPassword'));
           return;
         }
         const decrypted = await decryptWithPassword(encryptedMessage, password);
         setOutput(typeof decrypted === 'string' ? decrypted : new TextDecoder().decode(decrypted as Uint8Array));
       } else {
         if (!selectedKey) {
-          setError('Please select a decryption key');
+          setError(t('decrypt.errors.noKey'));
           return;
         }
 
         const keyEntry = keys.find((k) => k.fingerprint === selectedKey);
         if (!keyEntry?.privateKey) {
-          setError('Private key not found');
+          setError(t('decrypt.errors.privateKeyNotFound'));
           return;
         }
 
@@ -79,7 +81,7 @@ export default function DecryptPage() {
         setSignatures(result.signatures);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Decryption failed');
+      setError(err instanceof Error ? err.message : t('decrypt.errors.decryptionFailed'));
     } finally {
       setDecrypting(false);
     }
@@ -110,14 +112,14 @@ export default function DecryptPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Decrypt</h1>
-        <p className="text-text-secondary mt-tiny text-sm md:text-base">Decrypt PGP encrypted messages and files</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">{t('decrypt.title')}</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">{t('decrypt.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
         {/* Input */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Encrypted Data</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('decrypt.encryptedData')}</h2>
 
           {error && <Alert variant="danger" className="mb-md">{error}</Alert>}
 
@@ -128,40 +130,40 @@ export default function DecryptPage() {
               size="sm"
               onClick={() => setUseSymmetric(false)}
             >
-              Private Key
+              {t('decrypt.privateKeyMode')}
             </Button>
             <Button
               variant={useSymmetric ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setUseSymmetric(true)}
             >
-              Password
+              {t('decrypt.passwordMode')}
             </Button>
           </div>
 
           {/* Key or Password */}
           {useSymmetric ? (
             <Input
-              label="Password"
+              label={t('common.password')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter decryption password"
+              placeholder={t('decrypt.enterPassword')}
               className="mb-md"
             />
           ) : (
             <div className="flex flex-col gap-md mb-md">
               {privateKeys.length === 0 ? (
                 <Alert variant="warning">
-                  No private keys available. Import or generate a key first.
+                  {t('decrypt.noPrivateKeys')}
                 </Alert>
               ) : (
                 <Select
-                  label="Decryption Key"
+                  label={t('decrypt.decryptionKey')}
                   value={selectedKey}
                   onChange={(e) => setSelectedKey(e.target.value)}
                   options={[
-                    { value: '', label: 'Select key...' },
+                    { value: '', label: t('decrypt.selectKey') },
                     ...privateKeys.map((k) => ({
                       value: k.fingerprint,
                       label: `${k.keyInfo.userIds[0]?.email || k.keyId}`,
@@ -170,20 +172,20 @@ export default function DecryptPage() {
                 />
               )}
               <Input
-                label="Passphrase"
+                label={t('common.passphrase')}
                 type="password"
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="Enter key passphrase"
+                placeholder={t('decrypt.enterPassphrase')}
               />
             </div>
           )}
 
           <TextArea
-            label="Encrypted Message"
+            label={t('decrypt.encryptedData')}
             value={encryptedMessage}
             onChange={(e) => setEncryptedMessage(e.target.value)}
-            placeholder="Paste encrypted PGP message here..."
+            placeholder={t('decrypt.messagePlaceholder')}
             className="min-h-[200px] mb-md"
           />
 
@@ -200,17 +202,17 @@ export default function DecryptPage() {
               onClick={() => fileInputRef.current?.click()}
               className="w-full md:w-auto"
             >
-              Select File
+              {t('common.selectFile')}
             </Button>
             <Button onClick={handleDecrypt} loading={decrypting} className="w-full md:w-auto">
-              Decrypt
+              {t('common.decrypt')}
             </Button>
           </div>
         </Card>
 
         {/* Output */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Decrypted Output</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('decrypt.output')}</h2>
 
           {/* Signature verification results */}
           {signatures.length > 0 && (
@@ -234,7 +236,7 @@ export default function DecryptPage() {
                     </svg>
                   )}
                   <span className={`text-sm ${sig.valid ? 'text-success-text' : 'text-danger-text'}`}>
-                    {sig.valid ? 'Valid signature' : 'Invalid signature'} from {sig.signedBy?.email || sig.keyId}
+                    {sig.valid ? t('decrypt.validSignature') : t('decrypt.invalidSignature')} {t('decrypt.signatureFrom', { email: sig.signedBy?.email || sig.keyId })}
                   </span>
                 </div>
               ))}
@@ -250,16 +252,16 @@ export default function DecryptPage() {
               </div>
               <div className="flex flex-col md:flex-row gap-md md:gap-sm">
                 <Button variant="secondary" onClick={handleCopy} className="w-full md:w-auto">
-                  Copy
+                  {t('common.copy')}
                 </Button>
                 <Button variant="secondary" onClick={handleDownload} className="w-full md:w-auto">
-                  Download
+                  {t('common.download')}
                 </Button>
               </div>
             </>
           ) : (
             <div className="text-text-secondary text-sm">
-              Decrypted output will appear here
+              {t('decrypt.outputPlaceholder')}
             </div>
           )}
         </Card>

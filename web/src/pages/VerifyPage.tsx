@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Card, TextArea, Alert, Spinner, Badge } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { verify, VerificationResult, extractCleartextMessage } from '@kript/core';
 
 export default function VerifyPage() {
+  const { t } = useTranslation();
   const { keys, loading } = useKeyring();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sigFileInputRef = useRef<HTMLInputElement>(null);
@@ -52,16 +54,16 @@ export default function VerifyPage() {
 
     if (useDetached) {
       if (!originalMessage) {
-        setError('Please enter the original message');
+        setError(t('verify.errors.noOriginalMessage'));
         return;
       }
       if (!detachedSignature) {
-        setError('Please enter the detached signature');
+        setError(t('verify.errors.noSignature'));
         return;
       }
     } else {
       if (!signedMessage) {
-        setError('Please enter a signed message');
+        setError(t('verify.errors.noSignedMessage'));
         return;
       }
     }
@@ -72,7 +74,7 @@ export default function VerifyPage() {
       const verificationKeys = keys.map((k) => k.publicKey);
 
       if (verificationKeys.length === 0) {
-        setError('No public keys available for verification');
+        setError(t('verify.noPublicKeys'));
         return;
       }
 
@@ -104,7 +106,7 @@ export default function VerifyPage() {
       setResults(verificationResults);
       setVerified(verificationResults.every((r) => r.valid));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      setError(err instanceof Error ? err.message : t('verify.errors.verificationFailed'));
     } finally {
       setVerifying(false);
     }
@@ -121,14 +123,14 @@ export default function VerifyPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Verify</h1>
-        <p className="text-text-secondary mt-tiny text-sm md:text-base">Verify digital signatures on messages and files</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">{t('verify.title')}</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">{t('verify.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
         {/* Input */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Input</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('verify.input')}</h2>
 
           {error && <Alert variant="danger" className="mb-md">{error}</Alert>}
 
@@ -139,32 +141,32 @@ export default function VerifyPage() {
               size="sm"
               onClick={() => setUseDetached(false)}
             >
-              Cleartext Signed
+              {t('verify.cleartextMode')}
             </Button>
             <Button
               variant={useDetached ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setUseDetached(true)}
             >
-              Detached Signature
+              {t('verify.detachedMode')}
             </Button>
           </div>
 
           {useDetached ? (
             <>
               <TextArea
-                label="Original Message"
+                label={t('verify.originalMessage')}
                 value={originalMessage}
                 onChange={(e) => setOriginalMessage(e.target.value)}
-                placeholder="Paste original message here..."
+                placeholder={t('verify.originalMessagePlaceholder')}
                 className="min-h-[150px] mb-md"
               />
 
               <TextArea
-                label="Detached Signature"
+                label={t('verify.detachedSignature')}
                 value={detachedSignature}
                 onChange={(e) => setDetachedSignature(e.target.value)}
-                placeholder="Paste detached signature here..."
+                placeholder={t('verify.detachedSignaturePlaceholder')}
                 className="min-h-[100px] mb-md"
               />
 
@@ -180,7 +182,7 @@ export default function VerifyPage() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Load Message
+                  {t('verify.loadMessage')}
                 </Button>
                 <input
                   ref={sigFileInputRef}
@@ -194,17 +196,17 @@ export default function VerifyPage() {
                   size="sm"
                   onClick={() => sigFileInputRef.current?.click()}
                 >
-                  Load Signature
+                  {t('verify.loadSignature')}
                 </Button>
               </div>
             </>
           ) : (
             <>
               <TextArea
-                label="Signed Message"
+                label={t('verify.signedMessage')}
                 value={signedMessage}
                 onChange={(e) => setSignedMessage(e.target.value)}
-                placeholder="Paste signed message here...&#10;&#10;-----BEGIN PGP SIGNED MESSAGE-----&#10;..."
+                placeholder={t('verify.signedMessagePlaceholder')}
                 className="min-h-[250px] mb-md"
               />
 
@@ -221,20 +223,20 @@ export default function VerifyPage() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Load File
+                  {t('verify.loadFile')}
                 </Button>
               </div>
             </>
           )}
 
           <Button onClick={handleVerify} loading={verifying} className="w-full md:w-auto">
-            Verify Signature
+            {t('verify.verifyButton')}
           </Button>
         </Card>
 
         {/* Results */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Verification Results</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('verify.results')}</h2>
 
           {results.length > 0 ? (
             <>
@@ -257,7 +259,7 @@ export default function VerifyPage() {
                     </svg>
                   )}
                   <span className={`font-semibold ${verified ? 'text-success-text' : 'text-danger-text'}`}>
-                    {verified ? 'Signature Valid' : 'Signature Invalid'}
+                    {verified ? t('verify.signatureValid') : t('verify.signatureInvalid')}
                   </span>
                 </div>
               </div>
@@ -276,7 +278,7 @@ export default function VerifyPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className={`text-sm font-medium ${result.valid ? 'text-success-text' : 'text-danger-text'}`}>
-                          {result.signedBy?.email || `Key ID: ${result.keyId}`}
+                          {result.signedBy?.email || t('verify.keyId', { keyId: result.keyId })}
                         </div>
                         {result.signedBy?.name && (
                           <div className="text-xs text-text-secondary">
@@ -285,7 +287,7 @@ export default function VerifyPage() {
                         )}
                       </div>
                       <Badge variant={result.valid ? 'success' : 'danger'}>
-                        {result.valid ? 'Valid' : 'Invalid'}
+                        {result.valid ? t('common.valid') : t('common.invalid')}
                       </Badge>
                     </div>
                     {result.error && (
@@ -301,7 +303,7 @@ export default function VerifyPage() {
               {extractedMessage && (
                 <div>
                   <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
-                    Message Content
+                    {t('verify.messageContent')}
                   </div>
                   <div className="bg-bg-secondary border border-border p-sm">
                     <pre className="text-sm whitespace-pre-wrap break-all">
@@ -313,7 +315,7 @@ export default function VerifyPage() {
             </>
           ) : (
             <div className="text-text-secondary text-sm">
-              Verification results will appear here
+              {t('verify.resultsPlaceholder')}
             </div>
           )}
         </Card>

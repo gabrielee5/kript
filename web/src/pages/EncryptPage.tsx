@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Card, TextArea, Select, Input, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { encrypt, encryptWithPassword } from '@kript/core';
 
 export default function EncryptPage() {
+  const { t } = useTranslation();
   const { keys, loading } = useKeyring();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,22 +49,22 @@ export default function EncryptPage() {
     setOutput('');
 
     if (!message && !fileData) {
-      setError('Please enter a message or select a file');
+      setError(t('encrypt.errors.noInput'));
       return;
     }
 
     if (useSymmetric) {
       if (!password) {
-        setError('Please enter a password');
+        setError(t('encrypt.errors.noPassword'));
         return;
       }
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
+        setError(t('encrypt.errors.passwordsMismatch'));
         return;
       }
     } else {
       if (!selectedRecipient) {
-        setError('Please select a recipient');
+        setError(t('encrypt.errors.noRecipient'));
         return;
       }
     }
@@ -78,7 +80,7 @@ export default function EncryptPage() {
       } else {
         const recipient = keys.find((k) => k.fingerprint === selectedRecipient);
         if (!recipient) {
-          setError('Recipient key not found');
+          setError(t('encrypt.errors.recipientNotFound'));
           return;
         }
 
@@ -91,7 +93,7 @@ export default function EncryptPage() {
         setOutput(result.data as string);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Encryption failed');
+      setError(err instanceof Error ? err.message : t('encrypt.errors.encryptionFailed'));
     } finally {
       setEncrypting(false);
     }
@@ -122,14 +124,14 @@ export default function EncryptPage() {
   return (
     <div>
       <div className="mb-xl">
-        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">Encrypt</h1>
-        <p className="text-text-secondary mt-tiny text-sm md:text-base">Encrypt messages and files with PGP</p>
+        <h1 className="text-3xl md:text-4xl font-semibold leading-tight">{t('encrypt.title')}</h1>
+        <p className="text-text-secondary mt-tiny text-sm md:text-base">{t('encrypt.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
         {/* Input */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Input</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('encrypt.input')}</h2>
 
           {error && <Alert variant="danger" className="mb-md">{error}</Alert>}
 
@@ -140,14 +142,14 @@ export default function EncryptPage() {
               size="sm"
               onClick={() => setUseSymmetric(false)}
             >
-              Public Key
+              {t('encrypt.publicKeyMode')}
             </Button>
             <Button
               variant={useSymmetric ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setUseSymmetric(true)}
             >
-              Password
+              {t('encrypt.passwordMode')}
             </Button>
           </div>
 
@@ -155,33 +157,33 @@ export default function EncryptPage() {
           {useSymmetric ? (
             <div className="flex flex-col gap-md mb-md">
               <Input
-                label="Password"
+                label={t('common.password')}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter encryption password"
+                placeholder={t('encrypt.enterPassword')}
               />
               <Input
-                label="Confirm Password"
+                label={t('encrypt.confirmPassword')}
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm password"
+                placeholder={t('encrypt.confirmPasswordPlaceholder')}
               />
             </div>
           ) : (
             <div className="mb-md">
               {publicKeys.length === 0 ? (
                 <Alert variant="warning">
-                  No public keys available. Import or generate a key first.
+                  {t('encrypt.noPublicKeys')}
                 </Alert>
               ) : (
                 <Select
-                  label="Recipient"
+                  label={t('encrypt.recipient')}
                   value={selectedRecipient}
                   onChange={(e) => setSelectedRecipient(e.target.value)}
                   options={[
-                    { value: '', label: 'Select recipient...' },
+                    { value: '', label: t('encrypt.selectRecipient') },
                     ...publicKeys.map((k) => ({
                       value: k.fingerprint,
                       label: `${k.keyInfo.userIds[0]?.email || k.keyId}`,
@@ -196,21 +198,21 @@ export default function EncryptPage() {
           {fileName ? (
             <div className="mb-md">
               <div className="text-sm text-text-secondary uppercase tracking-wide mb-tiny">
-                File
+                {t('common.file')}
               </div>
               <div className="flex items-center justify-between border border-border p-sm">
                 <span className="text-sm">{fileName}</span>
                 <Button variant="secondary" size="sm" onClick={clearFile}>
-                  Remove
+                  {t('common.remove')}
                 </Button>
               </div>
             </div>
           ) : (
             <TextArea
-              label="Message"
+              label={t('common.message')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter message to encrypt..."
+              placeholder={t('encrypt.messagePlaceholder')}
               className="min-h-[200px] mb-md"
             />
           )}
@@ -227,17 +229,17 @@ export default function EncryptPage() {
               onClick={() => fileInputRef.current?.click()}
               className="w-full md:w-auto"
             >
-              Select File
+              {t('common.selectFile')}
             </Button>
             <Button onClick={handleEncrypt} loading={encrypting} className="w-full md:w-auto">
-              Encrypt
+              {t('common.encrypt')}
             </Button>
           </div>
         </Card>
 
         {/* Output */}
         <Card>
-          <h2 className="text-lg font-semibold mb-md">Output</h2>
+          <h2 className="text-lg font-semibold mb-md">{t('encrypt.output')}</h2>
 
           {output ? (
             <>
@@ -248,16 +250,16 @@ export default function EncryptPage() {
               </div>
               <div className="flex flex-col md:flex-row gap-md md:gap-sm">
                 <Button variant="secondary" onClick={handleCopy} className="w-full md:w-auto">
-                  Copy
+                  {t('common.copy')}
                 </Button>
                 <Button variant="secondary" onClick={handleDownload} className="w-full md:w-auto">
-                  Download
+                  {t('common.download')}
                 </Button>
               </div>
             </>
           ) : (
             <div className="text-text-secondary text-sm">
-              Encrypted output will appear here
+              {t('encrypt.outputPlaceholder')}
             </div>
           )}
         </Card>

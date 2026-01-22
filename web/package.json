@@ -14,8 +14,13 @@
   "dependencies": {
     "@kript/core": "*",
     "express": "^4.18.2",
+    "i18next": "^25.8.0",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-helmet-async": "^2.0.5",
+    "react-i18next": "^16.5.3",
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
