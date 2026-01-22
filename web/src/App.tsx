@@ -24,7 +24,7 @@ function App() {
     <div className="min-h-screen bg-bg-primary flex flex-col">
       {/* Header */}
       <header className="border-b border-border">
-        <div className="max-w-[80rem] mx-auto px-lg py-md">
+        <div className="max-w-[80rem] mx-auto px-lg py-lg">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-sm">
