@@ -17,6 +17,7 @@ export {
   readKeys,
   importKeys,
   exportKey,
+  exportKeyBinary,
   extractKeyInfo,
   decryptPrivateKey,
   changePassphrase,

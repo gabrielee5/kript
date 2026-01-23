@@ -93,6 +93,8 @@
     "revealPrivateKey": "Mostra chiave privata",
     "privateKeyWarning": "Maneggiare con estrema cura! Non condividere mai la tua chiave privata.",
     "copyPrivateKey": "Copia chiave privata",
+    "downloadAsc": "Scarica .asc",
+    "downloadGpg": "Scarica .gpg",
     "revocationTitle": "Salva il tuo certificato di revoca",
     "revocationDescription": "Conserva questo certificato in modo sicuro. Ne avrai bisogno per revocare la tua chiave se compromessa.",
     "copyAndDismiss": "Copia e chiudi",

@@ -17,6 +17,7 @@ import {
   ErrorCode,
 } from './types.js';
 import { getShortKeyId, withSecurePassphrase, secureClear } from './utils.js';
+import { uint8ArrayToBase64 } from './crypto.js';
 
 /**
  * Map our algorithm names to OpenPGP.js config
@@ -296,13 +297,13 @@ export async function importKeys(armoredKeys: string): Promise<ImportResult> {
 }
 
 /**
- * Export a key in armored format
+ * Export a key in armored or binary format
  */
 export async function exportKey(
   key: openpgp.Key,
   options: ExportOptions = {}
 ): Promise<string> {
-  const { includePrivate = false, passphrase } = options;
+  const { includePrivate = false, passphrase, armor = true } = options;
 
   try {
     if (includePrivate && key.isPrivate()) {
@@ -319,13 +320,14 @@ export async function exportKey(
           privateKey: decryptedKey as openpgp.PrivateKey,
           passphrase,
         });
-        return encrypted.armor();
+        return armor ? encrypted.armor() : uint8ArrayToBase64(encrypted.write());
       }
-      return key.armor();
+      return armor ? key.armor() : uint8ArrayToBase64(key.write());
     }
 
     // Export public key only
-    return key.toPublic().armor();
+    const publicKey = key.toPublic();
+    return armor ? publicKey.armor() : uint8ArrayToBase64(publicKey.write());
   } catch (error) {
     throw new PGPError(
       ErrorCode.INVALID_KEY,
@@ -334,6 +336,46 @@ export async function exportKey(
     );
   }
 }
+
+/**
+ * Export a key as binary (Uint8Array)
+ */
+export async function exportKeyBinary(
+  key: openpgp.Key,
+  options: Omit<ExportOptions, 'armor'> = {}
+): Promise<Uint8Array> {
+  const { includePrivate = false, passphrase } = options;
+
+  try {
+    if (includePrivate && key.isPrivate()) {
+      if (passphrase) {
+        let decryptedKey = key;
+        if (!key.isDecrypted()) {
+          decryptedKey = await openpgp.decryptKey({
+            privateKey: key as openpgp.PrivateKey,
+            passphrase,
+          });
+        }
+        const encrypted = await openpgp.encryptKey({
+          privateKey: decryptedKey as openpgp.PrivateKey,
+          passphrase,
+        });
+        return encrypted.write();
+      }
+      return key.write();
+    }
+
+    // Export public key only
+    return key.toPublic().write();
+  } catch (error) {
+    throw new PGPError(
+      ErrorCode.INVALID_KEY,
+      `Failed to export key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error instanceof Error ? error : undefined
+    );
+  }
+}
+
 
 /**
  * Decrypt a private key with passphrase

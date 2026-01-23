@@ -3,7 +3,31 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Badge, Modal, Input, Select, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { useSettings } from '../hooks/useSettings';
-import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey } from '@kript/core';
+import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey, readKey, exportKeyBinary } from '@kript/core';
+
+/**
+ * Download a file with the given content
+ */
+function downloadFile(content: string | Uint8Array, filename: string, mimeType: string) {
+  let blobPart: BlobPart;
+  if (content instanceof Uint8Array) {
+    // Create a new ArrayBuffer copy to satisfy TypeScript's BlobPart type
+    const buffer = new ArrayBuffer(content.length);
+    new Uint8Array(buffer).set(content);
+    blobPart = buffer;
+  } else {
+    blobPart = content;
+  }
+  const blob = new Blob([blobPart], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function KeysPage() {
   const { t } = useTranslation();
@@ -555,6 +579,37 @@ export default function KeysPage() {
           const entry = keys.find((k) => k.fingerprint === selectedKey);
           if (!entry) return null;
 
+          const handleDownloadPublicKey = async (format: 'asc' | 'gpg') => {
+            const filename = `${entry.keyId}_public.${format}`;
+            if (format === 'gpg') {
+              try {
+                const key = await readKey(entry.publicKey);
+                const binary = await exportKeyBinary(key, { includePrivate: false });
+                downloadFile(binary, filename, 'application/pgp-keys');
+              } catch (err) {
+                setExportError(err instanceof Error ? err.message : 'Export failed');
+              }
+            } else {
+              downloadFile(entry.publicKey, filename, 'application/pgp-keys');
+            }
+          };
+
+          const handleDownloadPrivateKey = async (format: 'asc' | 'gpg') => {
+            if (!entry.privateKey) return;
+            const filename = `${entry.keyId}_secret.${format}`;
+            if (format === 'gpg') {
+              try {
+                const key = await readKey(entry.privateKey);
+                const binary = await exportKeyBinary(key, { includePrivate: true });
+                downloadFile(binary, filename, 'application/pgp-keys');
+              } catch (err) {
+                setExportError(err instanceof Error ? err.message : 'Export failed');
+              }
+            } else {
+              downloadFile(entry.privateKey, filename, 'application/pgp-keys');
+            }
+          };
+
           return (
             <div className="flex flex-col gap-md">
               <div>
@@ -564,14 +619,29 @@ export default function KeysPage() {
                 <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
                   {entry.publicKey}
                 </pre>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="mt-sm"
-                  onClick={() => navigator.clipboard.writeText(entry.publicKey)}
-                >
-                  {t('keys.copyPublicKey')}
-                </Button>
+                <div className="flex flex-wrap gap-sm mt-sm">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigator.clipboard.writeText(entry.publicKey)}
+                  >
+                    {t('keys.copyPublicKey')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleDownloadPublicKey('asc')}
+                  >
+                    {t('keys.downloadAsc')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleDownloadPublicKey('gpg')}
+                  >
+                    {t('keys.downloadGpg')}
+                  </Button>
+                </div>
               </div>
 
               {entry.privateKey && (
@@ -620,14 +690,29 @@ export default function KeysPage() {
                       <pre className="bg-bg-secondary border border-border p-sm text-xs overflow-x-auto whitespace-pre-wrap break-all max-h-[200px]">
                         {entry.privateKey}
                       </pre>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="mt-sm"
-                        onClick={() => navigator.clipboard.writeText(entry.privateKey!)}
-                      >
-                        {t('keys.copyPrivateKey')}
-                      </Button>
+                      <div className="flex flex-wrap gap-sm mt-sm">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => navigator.clipboard.writeText(entry.privateKey!)}
+                        >
+                          {t('keys.copyPrivateKey')}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleDownloadPrivateKey('asc')}
+                        >
+                          {t('keys.downloadAsc')}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleDownloadPrivateKey('gpg')}
+                        >
+                          {t('keys.downloadGpg')}
+                        </Button>
+                      </div>
                     </>
                   )}
                 </div>

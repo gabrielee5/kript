@@ -9,8 +9,10 @@ import {
   Keyring,
   importKeys,
   generateRevocationCertificate,
+  readKey,
+  exportKeyBinary,
 } from '@kript/core';
-import { FileStorageAdapter, readFileContent, writeFileContent, fileExists } from '../storage.js';
+import { FileStorageAdapter, readFileContent, writeFileContent, writeFileBinary, fileExists } from '../storage.js';
 import {
   createSpinner,
   success,
@@ -153,11 +155,11 @@ export function createImportKeyCommand(): Command {
 export function createExportKeyCommand(): Command {
   return new Command('export-key')
     .alias('export')
-    .description('Export a key')
+    .description('Export a key to file (.asc or .gpg format)')
     .argument('<keyid>', 'Key ID or fingerprint to export')
-    .option('-o, --output <file>', 'Output file')
+    .option('-o, --output <file>', 'Output file (auto-detects format from extension, or uses .asc)')
     .option('--private', 'Export private key (requires passphrase)')
-    .option('--armor', 'Output ASCII armored text', true)
+    .option('-f, --format <format>', 'Output format: asc (ASCII armored) or gpg (binary)', 'asc')
     .action(async (keyid, options) => {
       try {
         const storage = new FileStorageAdapter();
@@ -170,9 +172,9 @@ export function createExportKeyCommand(): Command {
           process.exit(1);
         }
 
-        let exported: string;
+        const isPrivate = options.private as boolean;
 
-        if (options.private) {
+        if (isPrivate) {
           if (!entry.privateKey) {
             error('No private key available for this key');
             process.exit(1);
@@ -184,18 +186,50 @@ export function createExportKeyCommand(): Command {
             info('Export cancelled');
             return;
           }
-
-          exported = entry.privateKey;
-        } else {
-          exported = entry.publicKey;
         }
 
-        if (options.output) {
-          const outputPath = resolve(options.output as string);
-          await writeFileContent(outputPath, exported);
-          success(`Key exported to: ${outputPath}`);
+        // Determine format from output file extension or --format option
+        let format = (options.format as string).toLowerCase();
+        let outputPath = options.output as string | undefined;
+
+        if (outputPath) {
+          outputPath = resolve(outputPath);
+          // Auto-detect format from extension
+          if (outputPath.endsWith('.gpg')) {
+            format = 'gpg';
+          } else if (outputPath.endsWith('.asc')) {
+            format = 'asc';
+          } else {
+            // Add appropriate extension if missing
+            outputPath = outputPath + (format === 'gpg' ? '.gpg' : '.asc');
+          }
+        }
+
+        const keyData = isPrivate ? entry.privateKey! : entry.publicKey;
+
+        if (format === 'gpg') {
+          // Binary export
+          const key = await readKey(keyData);
+          const binary = await exportKeyBinary(key, { includePrivate: isPrivate });
+
+          if (outputPath) {
+            await writeFileBinary(outputPath, binary);
+            success(`Key exported to: ${outputPath}`);
+            info(`Format: Binary (.gpg)`);
+          } else {
+            // For binary, we must have an output file
+            error('Binary format requires an output file. Use -o <file>');
+            process.exit(1);
+          }
         } else {
-          console.log(exported);
+          // ASCII armored export (default)
+          if (outputPath) {
+            await writeFileContent(outputPath, keyData);
+            success(`Key exported to: ${outputPath}`);
+            info(`Format: ASCII armored (.asc)`);
+          } else {
+            console.log(keyData);
+          }
         }
       } catch (err) {
         error(err instanceof Error ? err.message : 'Export failed');

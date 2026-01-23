@@ -166,17 +166,35 @@ cat pubkey.asc | kript import-key
 kript export-key <keyid> [options]
 ```
 
+Export a key to file in `.asc` (ASCII armored) or `.gpg` (binary) format.
+
 **Options:**
-- `-o, --output <file>` - Output file
+- `-o, --output <file>` - Output file (auto-detects format from extension, or uses .asc)
 - `--private` - Export private key
+- `-f, --format <format>` - Output format: `asc` (ASCII armored, default) or `gpg` (binary)
+
+**Format Details:**
+- **`.asc` (ASCII armored)** - Human-readable text format, universally compatible with GPG, Kleopatra, Mailvelope, etc.
+- **`.gpg` (binary)** - Compact binary format, ~30% smaller, for advanced users
 
 ```bash
-# Export public key
+# Export public key as .asc (default)
 kript export-key john@example.com -o pubkey.asc
+
+# Export public key as binary .gpg
+kript export-key john@example.com -o pubkey.gpg
+
+# Export with explicit format flag
+kript export-key john@example.com -o pubkey -f gpg
 
 # Export private key (use with caution!)
 kript export-key john@example.com --private -o privkey.asc
+
+# Export private key as binary
+kript export-key john@example.com --private -o privkey.gpg
 ```
+
+**Note:** Binary format (`-f gpg`) requires an output file.
 
 #### Delete Key
 
@@ -222,6 +240,9 @@ import {
   verify,
   Keyring,
   IndexedDBStorageAdapter,
+  readKey,
+  exportKey,
+  exportKeyBinary,
 } from '@kript/core';
 ```
 
@@ -289,6 +310,35 @@ const results = await verify({
 
 console.log(results[0].valid);
 console.log(results[0].signedBy);
+```
+
+### Key Export
+
+```typescript
+import { readKey, exportKey, exportKeyBinary } from '@kript/core';
+
+// Read an armored key
+const key = await readKey(armoredKeyString);
+
+// Export as ASCII armored string (default)
+const armored = await exportKey(key, {
+  includePrivate: false, // true to export private key
+  armor: true, // default
+});
+
+// Export as binary Uint8Array
+const binary = await exportKeyBinary(key, {
+  includePrivate: false,
+});
+
+// Save binary to file (Node.js)
+import { writeFile } from 'fs/promises';
+await writeFile('key.gpg', binary);
+
+// Download binary in browser
+const blob = new Blob([binary], { type: 'application/pgp-keys' });
+const url = URL.createObjectURL(blob);
+// ... trigger download
 ```
 
 ### Keyring Management
@@ -383,5 +433,11 @@ interface VerificationResult {
   signedBy?: UserId;
   signatureTime?: Date;
   error?: string;
+}
+
+interface ExportOptions {
+  armor?: boolean; // true = ASCII armored, false = binary (default: true)
+  includePrivate?: boolean; // export private key (default: false)
+  passphrase?: string; // required if exporting encrypted private key
 }
 ```

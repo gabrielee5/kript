@@ -93,6 +93,8 @@
     "revealPrivateKey": "Reveal Private Key",
     "privateKeyWarning": "Handle with extreme care! Never share your private key.",
     "copyPrivateKey": "Copy Private Key",
+    "downloadAsc": "Download .asc",
+    "downloadGpg": "Download .gpg",
     "revocationTitle": "Save Your Revocation Certificate",
     "revocationDescription": "Store this certificate safely. You'll need it to revoke your key if compromised.",
     "copyAndDismiss": "Copy & Dismiss",
