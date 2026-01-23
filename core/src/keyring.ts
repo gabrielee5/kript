@@ -435,13 +435,30 @@ export class Keyring {
         );
       }
 
+      // Check if key already exists
+      const existingEntry = this.entries.get(keyInfo.fingerprint);
+
+      // Preserve existing private key if we're importing just a public key
+      // and the existing entry already has a private key
+      let finalPrivateKey = storedPrivateKey;
+      if (!storedPrivateKey && existingEntry?.privateKey) {
+        finalPrivateKey = existingEntry.privateKey;
+      }
+
+      // Update keyInfo.isPrivate based on whether we have a private key
+      const finalKeyInfo = {
+        ...keyInfo,
+        isPrivate: !!finalPrivateKey,
+      };
+
       const entry: KeyringEntry = {
         keyId: keyInfo.keyId,
         fingerprint: keyInfo.fingerprint,
         publicKey,
-        privateKey: storedPrivateKey,
-        keyInfo,
-        addedAt: new Date(),
+        privateKey: finalPrivateKey,
+        keyInfo: finalKeyInfo,
+        addedAt: existingEntry?.addedAt ?? new Date(),
+        lastUsed: existingEntry?.lastUsed,
       };
 
       this.entries.set(keyInfo.fingerprint, entry);

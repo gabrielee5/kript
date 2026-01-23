@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Keyring, MemoryStorageAdapter } from './keyring';
-import { generateKeyPair } from './keys';
+import { generateKeyPair, readKey, exportKey } from './keys';
 import { isEncryptedPrivateKey, isPlaintextPrivateKey } from './crypto';
 import { ErrorCode } from './types';
 
@@ -76,6 +76,63 @@ describe('Keyring', () => {
     it('should return false when deleting non-existent key', async () => {
       const deleted = await keyring.deleteKey('NONEXISTENT');
       expect(deleted).toBe(false);
+    });
+
+    it('should preserve private key when re-importing public key', async () => {
+      const keyPair = await generateKeyPair({
+        algorithm: 'curve25519',
+        userIds: [{ name: 'Test', email: 'test@example.com' }],
+      });
+
+      // First add with private key
+      const added = await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+      expect(added.privateKey).toBeDefined();
+
+      // Re-import the same key with only the public key
+      const reimported = await keyring.addKey(keyPair.publicKey);
+
+      // Private key should be preserved
+      expect(reimported.privateKey).toBeDefined();
+      expect(reimported.fingerprint).toBe(added.fingerprint);
+
+      // Verify from storage
+      const retrieved = await keyring.getKey(added.fingerprint);
+      expect(retrieved?.privateKey).toBeDefined();
+    });
+
+    it('should preserve private key when importing exported public key', async () => {
+      // This test simulates the exact user scenario:
+      // 1. Generate a key (has both public and private)
+      // 2. Add to keyring
+      // 3. Export just the public key
+      // 4. Re-import that exported public key
+      // 5. Verify private key is still there
+
+      const keyPair = await generateKeyPair({
+        algorithm: 'curve25519',
+        userIds: [{ name: 'Test', email: 'test@example.com' }],
+      });
+
+      // Add to keyring with private key
+      const added = await keyring.addKey(keyPair.publicKey, keyPair.privateKey);
+      expect(added.privateKey).toBeDefined();
+
+      // Export just the public key (like user would do)
+      const key = await readKey(keyPair.privateKey);
+      const exportedPublicKey = await exportKey(key, { includePrivate: false });
+
+      // Re-import the exported public key
+      const reimported = await keyring.addKey(exportedPublicKey);
+
+      // Private key should be preserved
+      expect(reimported.privateKey).toBeDefined();
+      expect(reimported.fingerprint).toBe(added.fingerprint);
+
+      // Verify by reloading the keyring
+      const newKeyring = new Keyring(storage);
+      await newKeyring.load();
+      const loaded = await newKeyring.getKey(added.fingerprint);
+      expect(loaded?.privateKey).toBeDefined();
     });
   });
 
