@@ -244,6 +244,37 @@ export async function readKey(armoredKey: string): Promise<openpgp.Key> {
 }
 
 /**
+ * Read and parse a binary key (Uint8Array)
+ */
+export async function readKeyBinary(binaryKey: Uint8Array): Promise<openpgp.Key> {
+  try {
+    // Try reading as public key first
+    const key = await openpgp.readKey({ binaryKey });
+    return key;
+  } catch {
+    // Try as private key
+    try {
+      const privateKey = await openpgp.readPrivateKey({ binaryKey });
+      return privateKey;
+    } catch (error) {
+      throw new PGPError(
+        ErrorCode.INVALID_KEY,
+        `Failed to parse binary key: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+}
+
+/**
+ * Convert a binary key to armored format
+ */
+export async function binaryKeyToArmored(binaryKey: Uint8Array): Promise<string> {
+  const key = await readKeyBinary(binaryKey);
+  return key.armor();
+}
+
+/**
  * Read multiple keys from armored text
  */
 export async function readKeys(armoredKeys: string): Promise<openpgp.Key[]> {

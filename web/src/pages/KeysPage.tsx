@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Badge, Modal, Input, Select, Alert, Spinner } from '../components/ui';
 import { useKeyring } from '../hooks/useKeyring';
 import { useSettings } from '../hooks/useSettings';
-import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey, readKey, exportKeyBinary } from '@kript/core';
+import { daysUntilExpiration, KeyAlgorithm, checkPassphraseStrength, decryptPrivateKey, readKey, exportKeyBinary, binaryKeyToArmored } from '@kript/core';
 
 /**
  * Download a file with the given content
@@ -61,6 +61,7 @@ export default function KeysPage() {
 
   // Import form state
   const [importText, setImportText] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleGenerate = async () => {
     setGenError(null);
@@ -124,6 +125,75 @@ export default function KeysPage() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    setImportError(null);
+
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const fileName = file.name.toLowerCase();
+
+    try {
+      if (fileName.endsWith('.gpg')) {
+        // Binary file - read as ArrayBuffer and convert to armored
+        const buffer = await file.arrayBuffer();
+        const binary = new Uint8Array(buffer);
+        const armored = await binaryKeyToArmored(binary);
+        setImportText(armored);
+      } else {
+        // Text file (.asc or other) - read as text
+        const text = await file.text();
+        setImportText(text);
+      }
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : t('keys.errors.importFailed'));
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const fileName = file.name.toLowerCase();
+    setImportError(null);
+
+    try {
+      if (fileName.endsWith('.gpg')) {
+        // Binary file
+        const buffer = await file.arrayBuffer();
+        const binary = new Uint8Array(buffer);
+        const armored = await binaryKeyToArmored(binary);
+        setImportText(armored);
+      } else {
+        // Text file
+        const text = await file.text();
+        setImportText(text);
+      }
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : t('keys.errors.importFailed'));
+    }
+
+    // Reset the input so the same file can be selected again
+    e.target.value = '';
   };
 
   const handleDelete = async (keyId: string) => {
@@ -539,20 +609,45 @@ export default function KeysPage() {
         <div className="flex flex-col gap-md">
           {importError && <Alert variant="danger">{importError}</Alert>}
 
-          <div className="flex flex-col gap-tiny">
+          <div
+            className={`flex flex-col gap-tiny relative ${isDragging ? 'ring-2 ring-black ring-offset-2' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <label className="text-sm text-text-secondary uppercase tracking-wide">
               {t('keys.pasteKey')}
             </label>
             <textarea
-              className="bg-white border border-border px-lg py-sm font-mono text-sm min-h-[200px] transition-all duration-150 hover:border-border-hover focus:border-black focus:outline-none"
+              className={`bg-white border px-lg py-sm font-mono text-sm min-h-[200px] transition-all duration-150 focus:border-black focus:outline-none ${
+                isDragging ? 'border-black bg-bg-secondary' : 'border-border hover:border-border-hover'
+              }`}
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
               placeholder={t('keys.pasteKeyPlaceholder')}
             />
+            {isDragging && (
+              <div className="absolute inset-0 flex items-center justify-center bg-bg-secondary/80 pointer-events-none mt-6">
+                <span className="text-lg font-medium">{t('keys.dropFileHere')}</span>
+              </div>
+            )}
           </div>
 
-          <div className="text-sm text-text-secondary">
-            {t('keys.dragDropHint')}
+          <div className="flex items-center gap-md">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept=".asc,.gpg,.pgp,.key"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <span className="inline-flex items-center px-md py-sm border border-border bg-white hover:border-border-hover transition-all duration-150 text-sm">
+                {t('keys.selectFile')}
+              </span>
+            </label>
+            <span className="text-sm text-text-secondary">
+              {t('keys.dragDropHint')}
+            </span>
           </div>
         </div>
       </Modal>

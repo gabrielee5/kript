@@ -14,10 +14,12 @@ export * from './utils.js';
 export {
   generateKeyPair,
   readKey,
+  readKeyBinary,
   readKeys,
   importKeys,
   exportKey,
   exportKeyBinary,
+  binaryKeyToArmored,
   extractKeyInfo,
   decryptPrivateKey,
   changePassphrase,
