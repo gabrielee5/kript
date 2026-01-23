@@ -34,7 +34,7 @@
     "settings": "SETTINGS"
   },
   "footer": {
-    "tagline": "Kript v1.0.0 - All operations run locally in your browser",
+    "tagline": "Kript v3.0.0 - All operations run locally in your browser",
     "github": "GitHub",
     "info": "Info",
     "createdBy": "Created by Gabriele Fabietti"

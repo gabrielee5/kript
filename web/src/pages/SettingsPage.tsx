@@ -128,7 +128,7 @@ export default function SettingsPage() {
 
           <div className="flex flex-col gap-sm text-sm">
             <div>
-              <strong>{t('settings.versionLabel')}</strong> 1.0.0
+              <strong>{t('settings.versionLabel')}</strong> 3.0.0
             </div>
             <div>
               <strong>{t('settings.poweredBy')}</strong> OpenPGP.js
