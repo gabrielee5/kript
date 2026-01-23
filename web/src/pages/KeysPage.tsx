@@ -597,7 +597,11 @@ export default function KeysPage() {
         title={t('keys.importModalTitle')}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowImportModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowImportModal(false);
+              setImportText('');
+              setImportError(null);
+            }}>
               {t('common.cancel')}
             </Button>
             <Button onClick={handleImport} loading={importing}>
