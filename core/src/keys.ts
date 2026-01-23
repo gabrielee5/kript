@@ -173,7 +173,15 @@ export async function generateKeyPair(options: KeyGenerationOptions): Promise<Ke
   const { algorithm, userIds, passphrase, expirationTime } = options;
   const algoConfig = getAlgorithmConfig(algorithm);
 
+  // Save original config for restoration
+  const originalComment = openpgp.config.commentString;
+  const originalShowComment = openpgp.config.showComment;
+
   try {
+    // Set Kript branding in armor headers
+    openpgp.config.commentString = 'Generated with Kript.xyz';
+    openpgp.config.showComment = true;
+
     const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
       type: algoConfig.type,
       rsaBits: algoConfig.rsaBits,
@@ -204,6 +212,10 @@ export async function generateKeyPair(options: KeyGenerationOptions): Promise<Ke
       `Failed to generate key pair: ${error instanceof Error ? error.message : 'Unknown error'}`,
       error instanceof Error ? error : undefined
     );
+  } finally {
+    // Always restore original config
+    openpgp.config.commentString = originalComment;
+    openpgp.config.showComment = originalShowComment;
   }
 }
 
