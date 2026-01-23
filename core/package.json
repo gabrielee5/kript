@@ -1,6 +1,6 @@
 {
   "name": "@kript/core",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Core cryptographic module for Kript",
   "type": "module",
   "main": "./dist/index.js",

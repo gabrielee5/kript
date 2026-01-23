@@ -1,6 +1,6 @@
 {
   "name": "kript",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "A modern, open-source PGP encryption tool that runs entirely locally with both CLI and web interfaces",
   "private": true,
   "type": "module",

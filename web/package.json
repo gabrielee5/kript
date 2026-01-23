@@ -1,6 +1,6 @@
 {
   "name": "@kript/web",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Web interface for Kript",
   "type": "module",
   "scripts": {
