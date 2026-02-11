@@ -4,128 +4,128 @@
 
   <!-- Italian URLs (Default Language) -->
   <url>
-    <loc>https://kript.xyz/it</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it"/>
+    <loc>https://www.kript.xyz/it</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/encrypt</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/encrypt"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/encrypt"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/encrypt"/>
+    <loc>https://www.kript.xyz/it/encrypt</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/encrypt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/encrypt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/encrypt"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/decrypt</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/decrypt"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/decrypt"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/decrypt"/>
+    <loc>https://www.kript.xyz/it/decrypt</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/decrypt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/decrypt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/decrypt"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/sign</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/sign"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/sign"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/sign"/>
+    <loc>https://www.kript.xyz/it/sign</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/sign"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/sign"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/sign"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/verify</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/verify"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/verify"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/verify"/>
+    <loc>https://www.kript.xyz/it/verify</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/verify"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/verify"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/verify"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/settings</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/settings"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/settings"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/settings"/>
+    <loc>https://www.kript.xyz/it/settings</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/settings"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/settings"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/settings"/>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/it/info</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/info"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/info"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/info"/>
+    <loc>https://www.kript.xyz/it/info</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/info"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/info"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/info"/>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <!-- English URLs -->
   <url>
-    <loc>https://kript.xyz/en</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it"/>
+    <loc>https://www.kript.xyz/en</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it"/>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/encrypt</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/encrypt"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/encrypt"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/encrypt"/>
+    <loc>https://www.kript.xyz/en/encrypt</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/encrypt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/encrypt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/encrypt"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/decrypt</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/decrypt"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/decrypt"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/decrypt"/>
+    <loc>https://www.kript.xyz/en/decrypt</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/decrypt"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/decrypt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/decrypt"/>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/sign</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/sign"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/sign"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/sign"/>
+    <loc>https://www.kript.xyz/en/sign</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/sign"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/sign"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/sign"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/verify</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/verify"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/verify"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/verify"/>
+    <loc>https://www.kript.xyz/en/verify</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/verify"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/verify"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/verify"/>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/settings</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/settings"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/settings"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/settings"/>
+    <loc>https://www.kript.xyz/en/settings</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/settings"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/settings"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/settings"/>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://kript.xyz/en/info</loc>
-    <xhtml:link rel="alternate" hreflang="it-IT" href="https://kript.xyz/it/info"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kript.xyz/en/info"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kript.xyz/it/info"/>
+    <loc>https://www.kript.xyz/en/info</loc>
+    <xhtml:link rel="alternate" hreflang="it-IT" href="https://www.kript.xyz/it/info"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kript.xyz/en/info"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.kript.xyz/it/info"/>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

@@ -1,11 +1,11 @@
 # Robots.txt for Kript - PGP Encryption Tool
-# https://kript.xyz
+# https://www.kript.xyz
 
 User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://kript.xyz/sitemap.xml
+Sitemap: https://www.kript.xyz/sitemap.xml
 
 # Crawl-delay for polite crawling
 Crawl-delay: 1

@@ -10,7 +10,7 @@ interface SEOProps {
 }
 
 // Base URL for the site
-const BASE_URL = 'https://kript.xyz';
+const BASE_URL = 'https://www.kript.xyz';
 
 // Get SEO keys based on route
 const getSEOKeysForRoute = (pathname: string): { titleKey: string; descriptionKey: string } => {
