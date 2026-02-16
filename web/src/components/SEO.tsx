@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@dr.pogodin/react-helmet';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { supportedLanguages, removeLanguagePrefix, getLanguageFromPath, defaultLanguage } from '../i18n';
